@@ -18,7 +18,7 @@
 
 
 
-// to get all the list of admin roles from the db
+/./ to get all the list of admin roles from the db
 
   async getRoleList():Promise<ResponseDto> {
     try {
