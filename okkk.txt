@@ -1,0 +1,30 @@
+
+  async getRevenueWithTrend() {
+  try{
+    const finalise = getRepository(SaleQuotation).createQueryBuilder('final');
+    const sum  = finalise.select('SUM(final.sellingPrice)').where("final.status = 'SOLD' ")
+    .leftJoin('final.finalizeSale', 'finalizeSale').where("finalizeSale.status = 'APPROVED'")
+    const data1 = await sum.getRawOne();
+
+
+
+    const average  = finalise.select('AVG(final.sellingPrice)').where("final.status = 'SOLD' ").andWhere("final.createdAt >= NOW() - INTERVAL '10 DAY' ")
+    .leftJoin('final.finalizeSale', 'finalize').where("finalize.status = 'APPROVED'")
+    const data2 = await average.getRawOne();
+
+
+    const average1=(data2['avg']/data1['sum'])*100;
+
+    const result = {
+      revenue:data1['sum'],
+      trend:average1
+    }
+
+    return {message: commonMessage.get , data: result}
+
+    }
+    
+  catch(error){
+      throw new InternalServerErrorException(error);
+    }
+  }
