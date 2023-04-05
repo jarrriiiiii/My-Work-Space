@@ -1,0 +1,90 @@
+The code you provided is using TypeORM's QueryBuilder to create a query for selecting the count of users who are verified and were created in the last 24 hours.
+
+
+  async getLastRegisteredUsers() {
+    try{
+      const user = getRepository(User).createQueryBuilder('user')
+      const result = user.select(['COUNT(user.id)'])
+     
+
+      .where('user.isVerified = :verify' , {verify : true})
+      .where("user.createdAt >= NOW() - INTERVAL '24 HOUR'")
+      const data = await result.getCount()
+      return {message: commonMessage.get , data : data }
+ // .where("user.isVerified = :verify && user.createdAt >= NOW() - INTERVAL '24 HOUR'", {verify: true})
+
+    }catch(error){
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+
+
+
+------------------------
+
+
+
+
+    async getSaleOrder() {
+      try{
+        const saleOrder = getRepository(FinalizeSale).createQueryBuilder('saleOrder');
+        const result = await saleOrder.select(['saleOrder.id']).getCount()
+  
+        return {message: commonMessage.get , data : {saleOrder : result}}
+      }catch(error){
+        throw new InternalServerErrorException(error);
+      }
+    }
+
+
+
+
+
+
+
+
+
+
+----------------------------
+
+
+
+  async propertiesOverview(){
+
+    try{
+      const inv1 = getRepository(Inventory).createQueryBuilder('inv');
+      const getAllInv = await inv1.select(['inv.id']).getCount()
+          //  return {message: commonMessage.get , data : {AllInventory : getAllInv}}
+
+          const inv2 = getRepository(Inventory).createQueryBuilder('inv');
+          const getAllSold = await inv2.select(['inv.id']).where('inv.noOfUnit = inv.noOfSold').getCount()
+          // return {message: commonMessage.get , data : {AllSoldInventory :  getAllSold}}
+
+          const NoOfagency = getRepository(Agency).createQueryBuilder('agency');
+          const result1 = await NoOfagency.select(['agency.id']).getCount()
+          // return {message: commonMessage.get , data : {AllAgency : result2}}
+
+          const TotalsalesQuotation = getRepository(SaleQuotation).createQueryBuilder('final');
+          const result2  = TotalsalesQuotation.select('SUM(final.sellingPrice)').where("final.status = 'SOLD' ")
+          .leftJoin('final.finalizeSale', 'finalizeSale').where("finalizeSale.status = 'APPROVED'")
+          const data = await result2.getRawOne();
+          // return {message: commonMessage.get , data : {Revenue :  data}}
+    
+
+    const response = {
+      totalInventory: getAllInv,
+      totalSold: getAllSold,
+      NoOfagency: result1,
+      totalSales: data || 0,
+    };
+    return response;
+
+    console.log(response)
+
+
+    }catch(error){
+      throw new InternalServerErrorException(error);
+    }
+  }
+
