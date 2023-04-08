@@ -172,3 +172,28 @@ async agenciesLastDayCount() {
     }
   }
   
+
+
+
+
+
+
+
+
+///////////////////////////////////////CODE 8////////////////////////////////////////////////
+// This function is designed to retrieve the total number of units in an inventory, as well as the number of units added in the last 24 hours.
+
+
+  async getNoOfUnits() {
+    try{
+      const units = getRepository(Inventory).createQueryBuilder('units');
+
+
+      const getAll = await units.select(['SUM(units.noOfUnit)']).getRawOne() //.getCount()
+      const getAllLast24Hours = await units.select(['SUM(units.noOfUnit)']).where("units.createdAt >= NOW() - INTERVAL '24 HOUR'").getRawOne() //.getCount()
+
+      return {message: commonMessage.get , data : {NoOfUnits : getAll, NoOfUnit24Hours: getAllLast24Hours}}
+    }catch(error){  
+      throw new InternalServerErrorException(error);
+    }
+  }
