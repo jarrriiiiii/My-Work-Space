@@ -57,5 +57,48 @@ async salesQuotation() {
       throw new InternalServerErrorException(error);
     }
   }
+  
+  
+  
+ 
+  ////////////////////////////////////////CODE 3////////////////////////////////////////////////
+  
+  
+  async getRevenueWithTrend() {
+  try{
+      
+ //this code is querying the database to get the total selling price of all SaleQuotation records that have been sold and whose finalizeSale records have been approved. The result of the query is stored in the data1 variable.
+    const finalise = getRepository(SaleQuotation).createQueryBuilder('final');
+    const sum  = finalise.select('SUM(final.sellingPrice)').where("final.status = 'SOLD' ")
+    .leftJoin('final.finalizeSale', 'finalizeSale').where("finalizeSale.status = 'APPROVED'")
+    const data1 = await sum.getRawOne();
+    
+   
+      
+  //this code is querying the database to get the total selling price of all SaleQuotation records that have been sold and whose finalizeSale records have been approved, and that were created within the last 10 days.    
+    const average  = finalise.select('SUM(final.sellingPrice)').where("final.status = 'SOLD' ").andWhere("final.createdAt >= NOW() - INTERVAL '10 DAY' ")
+    .leftJoin('final.finalizeSale', 'finalize').where("finalize.status = 'APPROVED'")
+    const data2 = await average.getRawOne();
+    
+//this code is calculating and storing the revenue and trend values based on the data retrieved from the previous queries, allowing for further analysis or visualization of the data.      
+   const average1=(data2['avg']/data1['sum'])*100;
+  
+      
+      const result = {
+      revenue:data1['sum'],
+      trend:average1
+    }
+   
+    return {message: commonMessage.get , data: result}
+    }
+  catch(error){
+      throw new InternalServerErrorException(error);
+    }
+  }
+  
+  
+  
+  
+  
 
 
