@@ -30,4 +30,23 @@
   }
 
 ////////////////////////
+  
+  
+    async GetInventoryData(): Promise<any>{
+    const getData = getRepository(Inventory);
+    const result =  getData.createQueryBuilder('getData')
+
+
+    .select(['getData.title', 'getData.price', 'getData.price','getData.description','x.NOC','y.createdAt', 'z.logo','a.createdAt'])
+    .leftJoin('getData.project', 'x')
+    .leftJoin('getData.projectType', 'y')
+    .leftJoin('getData.projectSubType', 'z')
+    .leftJoin('getData.landArea', 'a')
+    
+
+    const data = await result.getMany();
+    console.log(data)
+    return { message: commonMessage.get, data: data };
+
+  }
 
