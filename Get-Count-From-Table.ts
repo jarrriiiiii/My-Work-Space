@@ -105,42 +105,22 @@ async agenciesLastDayCount() {
   }
 
   
+
 ///////////////////////////////////////CODE 6////////////////////////////////////////////////
-//This code retrieve the total sum of the 'noOfUnit' column in the 'Inventory' table.
-
-    
-  async getNoOfUnits() {
-    try{
-      const units = getRepository(Inventory).createQueryBuilder('units');
-      const getAll = await units.select(['SUM(units.noOfUnit)']) //.getCount()
-
-      const data = await getAll.getRawOne();
-
-
-      return {message: commonMessage.get , data : {NoOfUnits : data}}
-    }catch(error){  
-      throw new InternalServerErrorException(error);
-    }
-  }
-
-
-///////////////////////////////////////CODE 7////////////////////////////////////////////////
-
 //The first query counts all users with roles of 'agentManager' or 'agentStaff'. 
 //The second query counts all users with roles of 'agentManager' or 'agentStaff' that were created within the last 24 hours.
 
   async getNoOfRegisteredStaff() {
-    
-    try{
+      try{
         
-      //This line creates a repository for the User entity, which allows us to perform database operations on it.
+//This line creates a repository for the User entity, which allows us to perform database operations on it.
       const userRepo = getRepository(User)
 
-      // This line creates a new query builder instance and sets the alias for the User entity to u
+// This line creates a new query builder instance and sets the alias for the User entity to u
       const result = await userRepo.createQueryBuilder('u')
 
 
-      //This select the count of user IDs, which will be returned as the result of the query.
+//This select the count of user IDs, which will be returned as the result of the query.
       .select('COUNT(u.id)') 
 
 
@@ -173,18 +153,9 @@ async agenciesLastDayCount() {
   }
   
 
-
-
-
-
-
-
-
-///////////////////////////////////////CODE 8////////////////////////////////////////////////
-// This function is designed to retrieve the total number of units in an inventory, as well as the number of units added in the last 24 hours.
-
-
-  async getNoOfUnits() {
+///////////////////////////////////////CODE 7////////////////////////////////////////////////
+// This function is designed to retrieve the total count of units in an inventory, as well as the number of units added in the last 24 hours.
+async getNoOfUnits() {
     try{
       const units = getRepository(Inventory).createQueryBuilder('units');
 
