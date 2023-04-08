@@ -1,5 +1,9 @@
 ////////////////////////////////////////CODE 1////////////////////////////////////////////////
-// The code above is a function named salesQuotation which calculates the total revenue earned from finalized sales. It does this by first creating a query builder for the FinalizeCommision entity and selecting the sum of the amount field using the select method of the query builder. Then, it calls the getRawOne method to execute the query and retrieve the result as an object. Finally, it returns a response object with a message and the revenue data.
+//The code above is a function named salesQuotation which calculates the total revenue earned from finalized sales. 
+//It does this by first creating a query builder for the FinalizeCommision entity
+//By selecting the sum of the amount field using the select method of the query builder. 
+//Then, it calls the getRawOne method to execute the query and retrieve the result as an object. 
+//Finally, it returns a response object with a message and the revenue data.
 
 
 async salesQuotation() {
@@ -22,9 +26,6 @@ async salesQuotation() {
 // 2) Selling prices of 'SaleQuotation' entities that were created in the last 24 hours, and whose status is "SOLD", and whose associated finalizeSale status is "APPROVED".  
 
 
-
-
-
   async revenueGenerate():Promise<ResponseDto> {
     try {
       const finalise = getRepository(SaleQuotation)
@@ -39,8 +40,7 @@ async salesQuotation() {
         .leftJoin('final.finalizeSale', 'finalizeSale')
       //adds another filter to the query builder to only include SaleQuotation entities whose FinalizeSale relation has a status property with value 'APPROVED'.
         .andWhere("finalizeSale.status = 'APPROVED'")
-
-        const data = await result.getRawOne();
+      const data = await result.getRawOne();
 
 
 //This code retrieves the sum of the selling prices of SaleQuotation entities that were created in the last 24 hours, and whose status is "SOLD", and whose associated finalizeSale status is "APPROVED".
@@ -50,10 +50,7 @@ async salesQuotation() {
       .andWhere("final.status = 'SOLD' ")
       .leftJoin('final.finalizeSale', 'finalizeSale')
       .andWhere("finalizeSale.status = 'APPROVED'")
-
-
-    const data2 = await result2.getCount();
-
+     const data2 = await result2.getCount();
 
       return { message: commonMessage.get, data: { Revenue: data ,last24Hours :data2} };
     } catch (error) {
