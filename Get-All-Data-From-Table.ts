@@ -1,6 +1,5 @@
 ///////////////////////////////////////CODE 1////////////////////////////////////////////////
-//to get all the data from the db table
-
+//To get all the data from the db table
 
   async getPopUpFormData(): Promise<ResponseDto> {
     try {
@@ -15,11 +14,7 @@
 
 
 ///////////////////////////////////////CODE 2////////////////////////////////////////////////
-
-
-
-
-/./ to get all the list of admin roles from the db
+//To get all the list of admin roles from the db
 
   async getRoleList():Promise<ResponseDto> {
     try {
