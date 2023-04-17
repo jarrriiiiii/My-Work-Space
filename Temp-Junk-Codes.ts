@@ -140,3 +140,36 @@ async createToken(CreateDeviceTokenDto: CreateDeviceTokenDto): Promise<ResponseD
 
 }
 
+
+
+////////////////////////////////////////////////////////////////
+
+
+  async userCheck (accountVerifyDto :VerifyDto):Promise<ResponseDto> {
+    try {
+      const userRepo = getRepository(User);
+
+
+      const emailcheck = await userRepo.findOne({ email: accountVerifyDto.email });
+      if (emailcheck) {
+        throw new BadRequestException(commonMessage.emailValidation);
+      }
+
+
+      const phonecheck = await userRepo.findOne({ phone: accountVerifyDto.phone });
+      if (phonecheck) {
+        throw new BadRequestException(commonMessage.phoneValidation);
+      }
+
+      const cniccheck = await userRepo.findOne({ email: accountVerifyDto.cnic });
+      if (cniccheck) {
+        throw new BadRequestException(commonMessage.emailValidation);
+      }
+
+      return { message : commonMessage.create, data : {}}
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+}
+
