@@ -21,7 +21,7 @@
         throw new BadRequestException(commonMessage.emailValidation);
       }
 
-      return { message : commonMessage.create, data : {}}
+      return { message : commonMessage.create, data :{}}
     } catch (error) {
       throw new InternalServerErrorException(error);
     }
