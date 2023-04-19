@@ -26,3 +26,23 @@
       throw new InternalServerErrorException(error);
     }
   }
+
+  
+  
+  
+  ///////////////////////////////////////CODE 3////////////////////////////////////////////////
+  //To get the list of all tokens saved in the DB
+  
+    async getToken(): Promise<ResponseDto> {
+    try {
+      const getToken = getRepository(SignupDeviceToken);
+      const result =  getToken.createQueryBuilder('token')
+
+      const data = await result.getMany();
+
+      
+      return { message: commonMessage.get, data: data };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
