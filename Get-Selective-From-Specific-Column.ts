@@ -13,8 +13,24 @@ async GetInventoryData(): Promise<any>{
   
   
   
-  ////////////////////////////CODE 2////////////////////////////
+////////////////////////////CODE 2////////////////////////////
   
+  
+      async getAllProjects(): Promise<ResponseDto> {
+      try {
+        const getData = getRepository(PropertyWalletProject);
+        const result =  getData.createQueryBuilder('PropertyWalletProject')
+        .select(['PropertyWalletProject.projectName','PropertyWalletProject.builderName','PropertyWalletProject.address','PropertyWalletProject.id'])
+        const totalItems = await result.getMany();
+        return { message: commonMessage.get, data: totalItems };
+
+      } catch (error) {
+        throw new InternalServerErrorException(error);
+      }
+    }
+
+  
+  ////////////////////////////CODE 3////////////////////////////
   //Code is retrieving data from a database. It is joining with multiple tables (project, projectType, projectSubType, and landArea) to retrieve additional information about each inventory item, including project information, creation dates, and logos.
   
       async GetInventoryData(): Promise<any>{
@@ -34,3 +50,4 @@ async GetInventoryData(): Promise<any>{
     return { message: commonMessage.get, data: data };
 
   }
+ 
