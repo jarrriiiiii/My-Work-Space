@@ -143,7 +143,7 @@ export class SaleQuotation extends BaseEntity{
 
 
 
-//////Code
+///////Code
 @Entity()
 export class FinalizeSale extends BaseEntity{
     @PrimaryGeneratedColumn()
