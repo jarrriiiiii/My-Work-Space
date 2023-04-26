@@ -50,4 +50,4 @@ async GetInventoryData(): Promise<any>{
     return { message: commonMessage.get, data: data };
 
   }
- 
+ //
