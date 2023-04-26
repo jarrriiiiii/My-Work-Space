@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////CODE 1///////////////////////////////////////////////////
 
-//Saving DTO Data in the Table
+//Saving and Retrieving DTO Data in the Table
 
 
 async notific(createNotificationDto: CreateNotificationDto) {
