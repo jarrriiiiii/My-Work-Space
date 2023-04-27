@@ -118,3 +118,27 @@ async createToken(CreateDeviceTokenDto: CreateDeviceTokenDto): Promise<ResponseD
   }
   }
   
+
+    
+  /////////////////////////////////////////////////////CODE 3///////////////////////////////////////////////////
+    
+      async createTitle(createPlacementDto: CreatePlacementDto): Promise<ResponseDto> {
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+
+    try {
+      const repo = queryRunner.manager.getRepository(Placement);
+      const result = await repo.save(createPlacementDto)
+     
+      await queryRunner.commitTransaction()
+      return { message: commonMessage.create, data: {result} };
+    } 
+    catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(error);
+    }
+     finally {
+      await queryRunner.release();
+    }
+    }
