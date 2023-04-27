@@ -122,6 +122,16 @@ async createToken(CreateDeviceTokenDto: CreateDeviceTokenDto): Promise<ResponseD
     
   /////////////////////////////////////////////////////CODE 3///////////////////////////////////////////////////
     
+   //Controller
+    
+     @Post('createTitle')
+  createTitle(@Body() createPlacementDto: CreatePlacementDto) {
+    return this.placementService.createTitle(createPlacementDto);
+  }
+   
+    
+   //Service
+    
       async createTitle(createPlacementDto: CreatePlacementDto): Promise<ResponseDto> {
     const queryRunner = this.connection.createQueryRunner();
     await queryRunner.connect()
