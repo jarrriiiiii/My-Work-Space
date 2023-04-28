@@ -75,3 +75,54 @@ constructor(
   ) {
     return this.saveAllPdfService.createPdf(createSaveAllPdfDto, files);
   }
+
+
+
+
+
+
+
+
+
+//////////////////////////////////CODE 2//////////////////////////////
+
+//To upload advertising video
+
+
+
+                            //Controller file
+
+  createAdvertisement(@Body() uploadAdvertisementDto:UploadAdvertisementDto,@UploadedFiles() file :{ advertisement: Express.Multer.File}){
+    return this.promotionService.createAdvertisement(uploadAdvertisementDto,file)
+  } 
+
+                            //Service file
+
+
+ async Uploader(file,name,extension){
+    const path = 'advertisement/'
+    const time = new Date().getTime();
+    const s3 = new S3();
+    const Result = await s3
+        .upload({
+        Bucket: bucket.bucket,
+        Body: file.buffer,
+        Key: bucket.prefix + path + name + '-' + time +'.'+ extension,
+        }).promise();
+    
+    return Result.Location
+  }
+  
+  async createAdvertisement(uploadAdvertisementDto : UploadAdvertisementDto,file): Promise<ResponseDto>{
+    const ad = file['advertisement']
+    try{
+      const name = ad[0].originalname.split('.')[0];
+      const fileExtName = ad[0].originalname.split('.')[ad[0].originalname.split('.').length - 1];
+      const url = await this.Uploader(ad[0],name,fileExtName)
+      return {message : commonMessage.create , data : url}
+    }
+    catch(error){
+      throw new InternalServerErrorException(error)
+    }
+  }
+
