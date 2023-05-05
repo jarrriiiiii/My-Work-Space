@@ -1,32 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { PropertyWalletUtilsService } from './property-wallet-utils.service';
-import { CreatePropertyWalletUtilDto } from './dto/create-property-wallet-util.dto';
-import { UpdatePropertyWalletUtilDto } from './dto/update-property-wallet-util.dto';
-import { ApiTags } from '@nestjs/swagger';
-import { hasModulePermission } from 'src/admin/admin-user-auth/admin-guards/adminPermission.decorator';
-import { moduleType } from 'src/common/constant';
-
-@ApiTags('property-wallet-project-features')
-@Controller({
-  version : '1',
-  path : 'property-wallet-utils'
-})
-export class PropertyWalletUtilsController {
-  constructor(private readonly propertyWalletUtilsService: PropertyWalletUtilsService) {}
-
   @Post('createUtil')
   @hasModulePermission(moduleType.inventories)
   createUtil(@Body() createPropertyWalletUtilDto: CreatePropertyWalletUtilDto) {
     return this.propertyWalletUtilsService.createUtil(createPropertyWalletUtilDto);
   }
 
-
   @Get('getUtil/:propertyWalletInventoryId')
   @hasModulePermission(moduleType.inventories)
   getUtil(@Param('propertyWalletInventoryId') propertyWalletInventoryId: string) {
     return this.propertyWalletUtilsService.getUtil(+propertyWalletInventoryId);
   }
-
 
   @Delete('removeUtil')
   @hasModulePermission(moduleType.inventories)
@@ -37,37 +19,7 @@ export class PropertyWalletUtilsController {
   
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-////////////////
-
-
-
-
-
-import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
-import { CreatePropertyWalletUtilDto } from './dto/create-property-wallet-util.dto';
-import { UpdatePropertyWalletUtilDto } from './dto/update-property-wallet-util.dto';
-import { commonMessage } from 'src/common/messages';
-import { ResponseDto } from 'src/common/response.dto';
-import { PropertyWalletInventory } from '../../property_wallet_inventory/entities/property_wallet_inventory.entity';
-import { AdminUserAuthService } from 'src/admin/admin-user-auth/admin-user-auth.service';
-import { Connection, getRepository } from 'typeorm';
-import { PropertyWalletMultiUtilities } from './entities/property-wallet-multi-utilities.entity';
-import { Util } from 'src/projects/projectFeatureList/utils/entities/util.entity';
+///
 
 @Injectable()
 export class PropertyWalletUtilsService {
@@ -163,86 +115,3 @@ export class PropertyWalletUtilsService {
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-////////////////////////
-
-
-
-
-import { BaseEntity, Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { AdminUserAuth } from "src/admin/admin-user-auth/entities/admin-user-auth.entity";
-// import { PropertyWalletFacing } from "./property-wallet-facing.entity";
-import { Facing } from "src/projects/projectFeatureList/facing/entities/facing.entity";
-import { PropertyWalletInventory } from "src/admin/property_wallet_project_detail/property_wallet_inventory/entities/property_wallet_inventory.entity";
-
-@Entity()
-export class PropertyWalletMultiFacing extends BaseEntity{
-    @PrimaryGeneratedColumn()
-    id : number
-    
-    @Column()
-    propertyWalletInventoryId: number;
-  
-    @ManyToOne(() => PropertyWalletInventory)
-    @JoinColumn({ name: 'propertyWalletInventoryId' })
-    propertyWalletInventory: PropertyWalletInventory;
-    
-    // @Column()
-    // propertyWalletFacingId : number
-
-    // @ManyToOne(()=> PropertyWalletFacing)
-    // @JoinColumn({name : 'propertyWalletFacingId'})
-    // propertyWalletFacing : PropertyWalletFacing
-
-
-    @Column()
-    propertyWalletFacingId : number
-
-    @ManyToOne(()=> Facing)
-    @JoinColumn({name : 'propertyWalletFacingId'})
-    propertyWalletFacing : Facing
-
-    @CreateDateColumn()
-    createdAt : Date
-
-    @UpdateDateColumn()
-    updatedAt : Date 
-
-    @DeleteDateColumn()
-    deletedAt : Date
-   
-    @Column({ nullable: true })
-    createdByAdmin: number;
-  
-    @ManyToOne(() => AdminUserAuth)
-    @JoinColumn({ name: 'createdByAdmin' })
-    createdByAdminUser: AdminUserAuth;
-  
-    @Column({ nullable: true })
-    updatedByAdmin: number;
-  
-    @ManyToOne(() => AdminUserAuth)
-    @JoinColumn({ name: 'updatedByAdmin' })
-    updatedByAdminUser: AdminUserAuth;r
-}
-
-
-
-
-
-
-
-
-
-
-///////////////////////////
