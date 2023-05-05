@@ -1,5 +1,4 @@
-//This code is checking for different properties in different tables based on the userId retrieved from this.authService.getUserId(). 
-//If a property exists for a user in a particular table, then the corresponding property in the obj1 object is set to true. 
+//This code is checking for different properties in different tables based on the userId retrieved from this.authService.getUserId(). If a property exists for a user in a particular table, then the corresponding property in the obj1 object is set to true if found if not found set to false. object, boolean,
 
 
     async agencyLogoCheck(){
