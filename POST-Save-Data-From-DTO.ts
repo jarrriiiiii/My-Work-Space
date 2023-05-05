@@ -1,6 +1,5 @@
-/////////////////////////////////////////////////////CODE 1///////////////////////////////////////////////////
-
-//Saving and Retrieving DTO Data in the Table
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//Saving, storing, save, store, post, retrieve, get, through DTO Data in the Table database db entity
 
 
 async notific(createNotificationDto: CreateNotificationDto) {
@@ -47,47 +46,7 @@ async notific(createNotificationDto: CreateNotificationDto) {
     }
   }
 
-
-                                    //DTO FILE
-
-
-export class CreateNotificationDto {
-    @ApiProperty()
-    @IsNumber()
-    userId : number
-
-    @ApiProperty()
-    @IsString()
-    shortTitle : string
-
-    @ApiProperty()
-    @IsString()
-    notificationType : string
-
-    @ApiProperty()
-    @IsString()
-    message : string
-
-    @ApiProperty()
-    @IsNumber()
-    createdBy : number
-
-    @ApiProperty({required : false})
-    @IsOptional()
-    url : string
-
-    @ApiProperty({required : false})
-    @IsOptional()
-    refId : string
-
-    @ApiProperty()
-    @IsOptional()
-    imageUrl : string
-}
-
-
-
-/////////////////////////////////////////////////////CODE 2///////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 @Injectable()
