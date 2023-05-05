@@ -8,6 +8,9 @@ import { CreatePropertyWalletHealthCareRecreationalDto } from "../../propertyWal
 import { CreateOtherNearByLocationDto } from "../../propertyWalletInventoryFeaturesList/other-near-by-location/dto/create-other-near-by-location.dto"
 import { CreatePropertyWalletRoomDto } from "../../propertyWalletInventoryFeaturesList/property-wallet-room/dto/create-property-wallet-room.dto"
 import { CreatePropertyWalletPlotFeatureDto } from "../../propertyWalletInventoryFeaturesList/property-wallet-plot-feature/dto/create-property-wallet-plot-feature.dto"
+import { CreatePropertyWalletCashPaymentPlanDto } from "../../property-wallet-cash-payment-plan/dto/create-property-wallet-cash-payment-plan.dto"
+import { CreatePropertyWalletInstallmentPaymentPlanDto } from "../../property-wallet-installment-payment-plan/dto/create-property-wallet-installment-payment-plan.dto"
+import { UpdatePropertyWalletInstallmentPaymentPlanDto } from "../../property-wallet-installment-payment-plan/dto/update-property-wallet-installment-payment-plan.dto"
 
 export class CreatePropertyWalletInventoryDto {
     
@@ -112,3 +115,35 @@ export class CreatePropertyWalletInventoryStep2Dto {
     @IsOptional()
     createPropertyWalletPlotFeatureDto : CreatePropertyWalletPlotFeatureDto;
 }
+
+export class CreatePropertyWalletInventoryStep3Dto {
+
+
+    @ApiProperty()
+    @IsNumber()
+    @IsNotEmpty()
+    propertyWalletInventoryId: number
+
+    @ApiProperty({ type : CreatePropertyWalletCashPaymentPlanDto})
+    createPropertyWalletCashPaymentPlanDto : CreatePropertyWalletCashPaymentPlanDto;
+
+    @ApiProperty({isArray : true , type : CreatePropertyWalletInstallmentPaymentPlanDto})
+    @IsOptional()
+    createPropertyWalletInstallmentPaymentPlanDto : CreatePropertyWalletInstallmentPaymentPlanDto[];
+
+} 
+
+export class UpdatePropertyWalletInventoryStep3Dto {
+    @ApiProperty()
+    @IsNumber()
+    @IsNotEmpty()
+    propertyWalletInventoryId: number
+    
+    @ApiProperty({ type : CreatePropertyWalletCashPaymentPlanDto})
+    createPropertyWalletCashPaymentPlanDto : CreatePropertyWalletCashPaymentPlanDto;
+
+    @ApiProperty({isArray : true , type : UpdatePropertyWalletInstallmentPaymentPlanDto})
+    @IsOptional()
+    updatePropertyWalletInstallmentPaymentPlanDto : UpdatePropertyWalletInstallmentPaymentPlanDto[];
+
+} 
