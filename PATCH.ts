@@ -1,4 +1,12 @@
-    async invoiceIsPaidCallBack(InvoiceNumber : string): Promise<ResponseDto> {
+  @Patch('/invoiceIsPaidCallBack/:InvoiceNumber')
+  invoiceIsPaidCallBack(@Param('InvoiceNumber') InvoiceNumber: string) {
+    return this.blinqIntegrationService.invoiceIsPaidCallBack(InvoiceNumber);
+  }
+
+////
+
+
+async invoiceIsPaidCallBack(InvoiceNumber : string): Promise<ResponseDto> {
       const queryRunner = this.connection.createQueryRunner()
       await queryRunner.connect();
       queryRunner.startTransaction()
@@ -12,17 +20,4 @@
         throw new InternalServerErrorException(error);
       }
     }
-
-
-
-
-
-
-
-
-///
-
-  @Post('/invoiceIsPaidCallBack/:InvoiceNumber')
-  invoiceIsPaidCallBack(@Param('InvoiceNumber') InvoiceNumber: string) {
-    return this.blinqIntegrationService.invoiceIsPaidCallBack(InvoiceNumber);
-  }
+---------------------------------------------------------------------------------------------------
