@@ -1,25 +1,16 @@
-@Injectable()
-export class SaveAllPdfService {
-
-  constructor(
-    private readonly connection: Connection,
-    private readonly fileUploadService:FileUploadService,
-    )  {}
-    
-
 //This function deletes all PDF records that were created on a particular date. 
-  async deletePDF(dateDto : DateDto):Promise<ResponseDto> {{
+
+
+async deletePDF(dateDto : DateDto):Promise<ResponseDto> {{
     const queryRunner = this.connection.createQueryRunner();
     await queryRunner.connect()
     await queryRunner.startTransaction()
     try {
-     
-      //  console.log(dateDto.date)
+
         const start = new Date(dateDto.date);
         start.setHours(0, 0, 0, 0);
         const end = new Date(start);
         end.setDate(start.getDate() + 1);
-        // console.log(start , end)
             const getAll = getRepository(SaveAllPdf)
 
 
@@ -44,3 +35,44 @@ export class SaveAllPdfService {
   }
 }
 }
+    
+    
+    
+    ------------------------------------------
+    
+    
+    
+  
+    
+    @Delete('removeUtil')
+  @hasModulePermission(moduleType.inventories)
+  removeUtil(createPropertyWalletUtilDto: CreatePropertyWalletUtilDto) {
+    return this.propertyWalletUtilsService.removeUtil(createPropertyWalletUtilDto);
+  }
+
+  
+///
+ async removeUtil(createPropertyWalletUtilDto: CreatePropertyWalletUtilDto): Promise<ResponseDto> {
+      const queryRunner = this.connection.createQueryRunner();
+      await queryRunner.connect()
+      await queryRunner.startTransaction()
+      try {
+        const PWMURepo = queryRunner.manager.getRepository(PropertyWalletMultiUtilities);
+        await PWMURepo.delete({
+          propertyWalletInventoryId : createPropertyWalletUtilDto.propertyWalletInventoryId,
+          propertyWalletUtilId : createPropertyWalletUtilDto.propertyWalletUtilId
+        }) 
+        await queryRunner.commitTransaction()
+        return { message: commonMessage.delete, data: null }
+      }
+      catch (error) {
+        await queryRunner.rollbackTransaction()
+        throw new InternalServerErrorException(error)
+      }
+      finally {
+        await queryRunner.release()
+      }
+    }
+
+
+
