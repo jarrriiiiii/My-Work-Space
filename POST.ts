@@ -82,3 +82,36 @@ async notific(createNotificationDto: CreateNotificationDto) {
     }
   }
 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  --------------------
+  
+    async createProjectStep1(
+    createPropertyWalletProjectStep1Dto: CreatePropertyWalletProjectStep1Dto,
+  ): Promise<ResponseDto> {
+    console.log(createPropertyWalletProjectStep1Dto);
+    const runner = this.connection.createQueryRunner();
+    await runner.connect();
+    await runner.startTransaction();
+    try {
+      const projectRepo = runner.manager.getRepository(PropertyWalletProject);
+      const userId = await this.adminAuth.getAdminUserId();
+      createPropertyWalletProjectStep1Dto['createdBy'] = userId;
+      const data = await projectRepo.save(createPropertyWalletProjectStep1Dto);
+      await runner.commitTransaction();
+      return { message: commonMessage.create, data: data };
+    } catch (err) {
+      await runner.rollbackTransaction();
+      throw new InternalServerErrorException(err);
+    } finally {
+      await runner.release();
+    }
+  }
+
