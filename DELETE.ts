@@ -75,4 +75,45 @@ async deletePDF(dateDto : DateDto):Promise<ResponseDto> {{
     }
 
 
+    
+    
+    
+    
+    
+    
+    -----------------------------------
+    
+    
+    
+  @Delete('removeFacing')
+  @hasModulePermission(moduleType.inventories)
+  removeFacing(@Body() createPropertyWalletFacingDto: CreatePropertyWalletFacingDto) {
+    return this.propertyWalletFacingService.removeFacing(createPropertyWalletFacingDto);
+    
+    
+    
+    ///////
+    
+    
+        async removeFacing(createPropertyWalletFacingDto: CreatePropertyWalletFacingDto): Promise<ResponseDto> {
+      const queryRunner = this.connection.createQueryRunner();
+      await queryRunner.connect()
+      await queryRunner.startTransaction()
+      try {
+        const pwmfRepo = queryRunner.manager.getRepository(PropertyWalletMultiFacing);
+        await pwmfRepo.delete({
+          propertyWalletInventoryId : createPropertyWalletFacingDto.propertyWalletInventoryId,
+          propertyWalletFacingId : createPropertyWalletFacingDto.propertyWalletFacingId
+        }) 
+        await queryRunner.commitTransaction()
+        return { message: commonMessage.delete, data: null }
+      }
+      catch (error) {
+        await queryRunner.rollbackTransaction()
+        throw new InternalServerErrorException(error)
+      }
+      finally {
+        await queryRunner.release()
+      }
+    }
 
