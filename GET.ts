@@ -332,7 +332,7 @@ async salesQuotation() {
   }
 
     
-////////////////////////////////////
+/////////////////////////////////////
 //get by id , fetch by id, getMany, retrieve, get records specific particular selected selective limited data column from the db table database
     
     
