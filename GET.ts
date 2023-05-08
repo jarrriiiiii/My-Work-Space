@@ -332,6 +332,31 @@ async salesQuotation() {
   }
 
     
+////////////////////////////////////
+//get by id , fetch by id, getMany, retrieve, get records specific particular selected selective limited data column from the db table database
+    
+    
+    async getProductDetail (id : number){
+  try {
+    const productRepo = getRepository(
+      PropertyWalletProduct
+    );
+    const data = await productRepo.createQueryBuilder('p')
+    .where('p.id = :id', {id})
+    .leftJoinAndSelect('p.projectType','projectType')
+    .leftJoinAndSelect('p.ProjectSubType','ProjectSubType')
+    .getOne()
+    return data
+
+  } catch (error) {
+    throw new InternalServerErrorException(error);
+  }
+}
+
+    
+    
+    
+    
     
     
     ////////////////////////////////////
