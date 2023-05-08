@@ -397,3 +397,58 @@ async salesQuotation() {
       }
     }
 }
+    
+    
+    
+    
+    
+    
+    
+    
+-------------------------------------------------------------------------------------------------
+//download, Generate, export, get, retrieve, xlsx excel sheet xls spreadsheet, object, array to xlsx excel sheet xls spreadsheet
+    
+ @Get('ExportToExcel') //Controller
+  ExportToExcel(@Res() res: Response): void {
+    return this.excelExportService.ExportToExcel(res);}
+
+export class ExcelExportService { //Service file
+
+  private people: Person[] = [
+    {
+      name: 'John Smith',
+      age: 34,
+      address: '123 Main St',
+      country: 'USA'
+    },
+    {
+      name: 'Jane Doe',
+      age: 25,
+      address: '456 Elm St',
+      country: 'Canada'
+    },];
+
+    ExportToExcel(@Res() res: Response): void {
+      try {
+          const sheetData = xlsx.utils.json_to_sheet(this.people);
+          const wb = xlsx.utils.book_new();
+          xlsx.utils.book_append_sheet(wb, sheetData, 'People');
+          const fileBuffer = xlsx.write(wb, { type: 'buffer' });
+         res.setHeader(
+            'Content-Disposition',
+            'attachment; filename=' + 'people.xlsx',
+          );
+          res.setHeader('Content-Type', 'application/vnd.ms-excel');
+          res.setHeader('Content-Length', fileBuffer.length)
+          res.send(fileBuffer);
+      } catch (error) {
+        throw new InternalServerErrorException(error);}}}
+    
+export interface Person {
+    name: string;
+    age: number;
+    country: string;
+    address: string;
+  }
+    
+----------------------------------------------------------------------------
