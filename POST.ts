@@ -1,20 +1,16 @@
-//////////////////////////////////////////////////////////////////////////////////////////////////////
 //Saving, storing, save, store, post through DTO Data in the Table database db entity, startTransaction, transaction
-                                                         //Controller
     
-     @Post('createTitle')
+@Post('createTitle')
   createTitle(@Body() CreateDeviceTokenDto: CreateDeviceTokenDto) {
     return this.placementService.createToken(CreateDeviceTokenDto);
   }
-
-
-                                                          //Service
 
 @Injectable()
 export class SignupDeviceTokenService {
   constructor(
     private readonly connection: Connection
     )  {}
+
 async createToken(CreateDeviceTokenDto: CreateDeviceTokenDto): Promise<ResponseDto> {
   const queryRunner = this.connection.createQueryRunner();
   await queryRunner.connect()
@@ -73,7 +69,6 @@ async notific(createNotificationDto: CreateNotificationDto) {
       return {message : commonMessage.create, data : Result}
     }
     catch(error){
-      // console.log("//////////////////////////////////////////////////")
       await queryRunner.rollbackTransaction()
       throw new InternalServerErrorException(error)
     }
@@ -81,22 +76,13 @@ async notific(createNotificationDto: CreateNotificationDto) {
       await queryRunner.release()
     }
   }
-
+---------------------------------------------
+//Save, post. store, data via through DTO in db table database
   
-  
-  
-  
-  
-  
-  
-  
-  
-  --------------------
-  
-    async createProjectStep1(
+  async createProjectStep1(
     createPropertyWalletProjectStep1Dto: CreatePropertyWalletProjectStep1Dto,
   ): Promise<ResponseDto> {
-    console.log(createPropertyWalletProjectStep1Dto);
+
     const runner = this.connection.createQueryRunner();
     await runner.connect();
     await runner.startTransaction();
@@ -114,28 +100,3 @@ async notific(createNotificationDto: CreateNotificationDto) {
       await runner.release();
     }
   }
-
-  -------------------------------
-  
-  
-  async CreatePWInventoryPlot(createPropertyWalletInventoryPlotDto: CreatePropertyWalletInventoryPlotDto): Promise<ResponseDto> {
-  const queryRunner = this.connection.createQueryRunner();
-  await queryRunner.connect()
-  await queryRunner.startTransaction()
-  
-  try {
-    const PWIPlotDetailsRepo = queryRunner.manager.getRepository(PropertyWalletInventoryPlotDetails);
-    const userId = await this.adminAuth.getAdminUserId()
-    createPropertyWalletInventoryPlotDto['createdBy'] = userId
-
-        const PWIPlotDetailResult = await PWIPlotDetailsRepo.save(createPropertyWalletInventoryPlotDto)
-    await queryRunner.commitTransaction()
-    return { message: commonMessage.create, data: {PWIPlotDetailResult} };
-  } 
-  catch (error) {
-    await queryRunner.rollbackTransaction();
-    throw new InternalServerErrorException(error);
-  }
-   finally {
-    await queryRunner.release();
-  }}
