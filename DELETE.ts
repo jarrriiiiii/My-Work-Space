@@ -67,3 +67,28 @@ async deletePDF(dateDto : DateDto):Promise<ResponseDto> {{
       }
     }
 ----------------------------------------------------------------------------------------------------------------------
+    
+      async DeletePWInventoryPlot(id: number): Promise<any> {
+
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+    try {
+
+      const PWIPlotDetailsRepo = queryRunner.manager.getRepository(PropertyWalletInventoryPlotDetails);
+      await PWIPlotDetailsRepo.delete({ id: id}) 
+      await queryRunner.commitTransaction()
+      return { message: commonMessage.delete, data: null }
+    }
+    catch (error) {
+      await queryRunner.rollbackTransaction()
+      throw new InternalServerErrorException(error)
+    }
+    finally {
+      await queryRunner.release()
+    }
+  }
+
+
+}
+    
