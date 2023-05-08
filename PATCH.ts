@@ -21,3 +21,30 @@ async invoiceIsPaidCallBack(InvoiceNumber : string): Promise<ResponseDto> {
       }
     }
 ---------------------------------------------------------------------------------------------------
+//Update by DTO, update by id
+  
+  
+  async updateProjectStep1(
+    propertyWalletProjectId: number,
+    updatePropertyWalletProjectStep1Dto: UpdatePropertyWalletProjectStep1Dto,
+  ): Promise<ResponseDto> {
+    const runner = this.connection.createQueryRunner();
+    await runner.connect();
+    await runner.startTransaction();
+    try {
+      const projectRepo = runner.manager.getRepository(PropertyWalletProject);
+      const projectId = propertyWalletProjectId;
+      const findCkeck = await projectRepo.find({ id: projectId });
+      if (findCkeck[0]) {
+        await projectRepo.update(
+          { id: projectId },
+          updatePropertyWalletProjectStep1Dto,
+        );
+        await runner.commitTransaction();
+      }
+      return { message: commonMessage.update };
+    } catch (err) {
+      await runner.rollbackTransaction();
+      throw new InternalServerErrorException(err);
+    }
+  }
