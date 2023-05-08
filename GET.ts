@@ -93,7 +93,6 @@ async GetInventoryData(): Promise<any>{
   }
 
 
-  ////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
 //get count, total number, serial number, number of entries, objects, items in table database db entities entity, getCount
 
@@ -226,6 +225,25 @@ async getNoOfUnits() {
     }
   }
     
+    
+    
+/////////////////////////////////////////////////////////////////////////////////////
+//get count, total number, serial number, number of entries, objects, items in table database db entities entity, getCount by Project Inventory ID
+    
+      async getInventoryCountByProjectId(propertyWalletProjectId : number) {
+    try {
+    const inventoryRepo = getRepository(PropertyWalletInventory);
+    const data = await inventoryRepo.createQueryBuilder('inv')
+    .select('COUNT(inv.id)')
+    .where('inv.propertyWalletProjectId = :propertyWalletProjectId',{propertyWalletProjectId})
+    .getRawOne()
+    return {message : commonMessage.get , data : data}
+    } catch (error) {
+      
+    }
+  }
+    
+   
 ///////////////////////////////////////////////////////////////////////
 //Calculate sum, add, addition, total amount, total added, total sum of items, records, objects, entities, in database table db, calculates the total revenue earned from finalized sales
 
@@ -317,9 +335,8 @@ async salesQuotation() {
     
     
     ////////////////////////////////////
-    
-    
-        async getUtil(propertyWalletInventoryId :number): Promise<ResponseDto> {
+ 
+    async getUtil(propertyWalletInventoryId :number): Promise<ResponseDto> {
       try {
         const PWMURepo = getRepository(PropertyWalletMultiUtilities);
         const utilRepo = getRepository(Util); 
@@ -354,5 +371,4 @@ async salesQuotation() {
         throw new InternalServerErrorException(error);
       }
     }
-
 }
