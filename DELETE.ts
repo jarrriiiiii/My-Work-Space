@@ -1,4 +1,4 @@
-//This function deletes all PDF records that were created on a particular date. 
+//deletes all PDF records that were created on a particular date, delete on given date, delete date wise, delete by id 
 
 
 async deletePDF(dateDto : DateDto):Promise<ResponseDto> {{
@@ -35,15 +35,8 @@ async deletePDF(dateDto : DateDto):Promise<ResponseDto> {{
   }
 }
 }
-    
-    
-    
-    ------------------------------------------
-    
-    
-    
-  
-    
+-----------------------------------------------------------------------------------------------------------------------
+ //Delete by title and id, delete by giving dto   
     @Delete('removeUtil')
   @hasModulePermission(moduleType.inventories)
   removeUtil(createPropertyWalletUtilDto: CreatePropertyWalletUtilDto) {
@@ -51,7 +44,7 @@ async deletePDF(dateDto : DateDto):Promise<ResponseDto> {{
   }
 
   
-///
+//
  async removeUtil(createPropertyWalletUtilDto: CreatePropertyWalletUtilDto): Promise<ResponseDto> {
       const queryRunner = this.connection.createQueryRunner();
       await queryRunner.connect()
@@ -73,47 +66,4 @@ async deletePDF(dateDto : DateDto):Promise<ResponseDto> {{
         await queryRunner.release()
       }
     }
-
-
-    
-    
-    
-    
-    
-    
-    -----------------------------------
-    
-    
-    
-  @Delete('removeFacing')
-  @hasModulePermission(moduleType.inventories)
-  removeFacing(@Body() createPropertyWalletFacingDto: CreatePropertyWalletFacingDto) {
-    return this.propertyWalletFacingService.removeFacing(createPropertyWalletFacingDto);
-    
-    
-    
-    ///////
-    
-    
-        async removeFacing(createPropertyWalletFacingDto: CreatePropertyWalletFacingDto): Promise<ResponseDto> {
-      const queryRunner = this.connection.createQueryRunner();
-      await queryRunner.connect()
-      await queryRunner.startTransaction()
-      try {
-        const pwmfRepo = queryRunner.manager.getRepository(PropertyWalletMultiFacing);
-        await pwmfRepo.delete({
-          propertyWalletInventoryId : createPropertyWalletFacingDto.propertyWalletInventoryId,
-          propertyWalletFacingId : createPropertyWalletFacingDto.propertyWalletFacingId
-        }) 
-        await queryRunner.commitTransaction()
-        return { message: commonMessage.delete, data: null }
-      }
-      catch (error) {
-        await queryRunner.rollbackTransaction()
-        throw new InternalServerErrorException(error)
-      }
-      finally {
-        await queryRunner.release()
-      }
-    }
-
+----------------------------------------------------------------------------------------------------------------------
