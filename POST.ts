@@ -115,3 +115,27 @@ async notific(createNotificationDto: CreateNotificationDto) {
     }
   }
 
+  -------------------------------
+  
+  
+  async CreatePWInventoryPlot(createPropertyWalletInventoryPlotDto: CreatePropertyWalletInventoryPlotDto): Promise<ResponseDto> {
+  const queryRunner = this.connection.createQueryRunner();
+  await queryRunner.connect()
+  await queryRunner.startTransaction()
+  
+  try {
+    const PWIPlotDetailsRepo = queryRunner.manager.getRepository(PropertyWalletInventoryPlotDetails);
+    const userId = await this.adminAuth.getAdminUserId()
+    createPropertyWalletInventoryPlotDto['createdBy'] = userId
+
+        const PWIPlotDetailResult = await PWIPlotDetailsRepo.save(createPropertyWalletInventoryPlotDto)
+    await queryRunner.commitTransaction()
+    return { message: commonMessage.create, data: {PWIPlotDetailResult} };
+  } 
+  catch (error) {
+    await queryRunner.rollbackTransaction();
+    throw new InternalServerErrorException(error);
+  }
+   finally {
+    await queryRunner.release();
+  }}
