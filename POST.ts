@@ -30,8 +30,40 @@ async createToken(CreateDeviceTokenDto: CreateDeviceTokenDto): Promise<ResponseD
   }
   }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-//Saving, storing, save, store, post, retrieve, get, through DTO Data in the Table database db entity, startTransaction, transaction
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//Save, post, store, data via through DTO in db table database, save by User ID, save by createdByAdmin, by using auth connection
+
+    
+    async createProductUtil(createPropertyWalletProductUtilDto: CreatePropertyWalletProductUtilDto): Promise<ResponseDto> {
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+  
+    try {
+    const repo = queryRunner.manager.getRepository(PropertyWalletProductMultiUtilities);
+    const userId = await this.adminAuth.getAdminUserId()
+    const check = await repo.findOne(createPropertyWalletProductUtilDto)
+     
+      if(!check){
+     createPropertyWalletProductUtilDto.createdByAdmin = userId
+      const result = await repo.save(createPropertyWalletProductUtilDto)
+      await queryRunner.commitTransaction()
+      return { message: commonMessage.create, data: {result} };
+      }
+
+      throw(commonMessage.duplicateData)
+    } 
+    catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(error);
+    }
+     finally {
+      await queryRunner.release();
+    }
+    }
+    
+ ----------------------------------------------------------------------------------------------------------------------------------------------
+//Saving, storing, save, store, post, object, data in object, through DTO Data in the Table database db entity, startTransaction, transaction
 
 
 async notific(createNotificationDto: CreateNotificationDto) {
@@ -51,21 +83,6 @@ async notific(createNotificationDto: CreateNotificationDto) {
 
       })
       await queryRunner.commitTransaction();
-      const Result = await notifRepo.createQueryBuilder('N')
-      .select([
-        'N.id',
-        'N.userId',
-        'N.shortTitle',
-        'N.notificationType',
-        'N.message',
-        'N.imageUrl',
-        'N.createdBy',
-        'N.isReaded'
-      ])
-        .where('N.id = :id', { id: result.id })
-        .leftJoinAndSelect('N.profile', 'profile')
-        .getOne()
-      await this.realtimeGateway.notificationEvent(Result)
       return {message : commonMessage.create, data : Result}
     }
     catch(error){
@@ -74,29 +91,5 @@ async notific(createNotificationDto: CreateNotificationDto) {
     }
     finally{
       await queryRunner.release()
-    }
-  }
----------------------------------------------
-//Save, post. store, data via through DTO in db table database
-  
-  async createProjectStep1(
-    createPropertyWalletProjectStep1Dto: CreatePropertyWalletProjectStep1Dto,
-  ): Promise<ResponseDto> {
-
-    const runner = this.connection.createQueryRunner();
-    await runner.connect();
-    await runner.startTransaction();
-    try {
-      const projectRepo = runner.manager.getRepository(PropertyWalletProject);
-      const userId = await this.adminAuth.getAdminUserId();
-      createPropertyWalletProjectStep1Dto['createdBy'] = userId;
-      const data = await projectRepo.save(createPropertyWalletProjectStep1Dto);
-      await runner.commitTransaction();
-      return { message: commonMessage.create, data: data };
-    } catch (err) {
-      await runner.rollbackTransaction();
-      throw new InternalServerErrorException(err);
-    } finally {
-      await runner.release();
     }
   }
