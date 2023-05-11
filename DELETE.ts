@@ -1,4 +1,4 @@
-//Delete by title and id, delete by dto   
+//hard delete by title, hard delete by id, hard delete by dto, hard delete by id, hard delete, remove by id, remove by dto
 
     @Delete('removeUtil')
   @hasModulePermission(moduleType.inventories)
@@ -29,9 +29,8 @@
     }
 
 ----------------------------------------------------------------------------------------------------------------------
- //Delete by id, remove by id, delete by param as ID
-    
-    
+ // hard delete by id, remove by id, hard delete by param as ID, remove by param as ID
+ 
 @Delete('DeletePWInventoryPlot/:id')
 DeletePWInventoryPlot(@Param('id') id: number){
 return this.propertyWalletInventoryPlotService.DeletePWInventoryPlot(+id);   
@@ -59,7 +58,7 @@ return this.propertyWalletInventoryPlotService.DeletePWInventoryPlot(+id);
      
 
 -----------------------------------------------------------------------------------
-  //deletes all PDF records that were created on a particular date, delete on given date, delete date wise, delete by id ,delete by date, delete by range
+  //deletes all PDF records that were created on a particular date, delete on given date, delete date wise, delete by id ,delete by date, delete by range, hard delete by dto, remove by dto
 
 
 async deletePDF(dateDto : DateDto):Promise<ResponseDto> {{
@@ -73,7 +72,6 @@ async deletePDF(dateDto : DateDto):Promise<ResponseDto> {{
         const end = new Date(start);
         end.setDate(start.getDate() + 1);
             const getAll = getRepository(SaveAllPdf)
-
 
             const Result = getAll.createQueryBuilder('get')
             .where(`get.createdAt BETWEEN '${start.toISOString()}' AND '${end.toISOString()}'`)
