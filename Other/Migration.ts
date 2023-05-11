@@ -27,3 +27,39 @@ export class freeToolCount1682491816318 implements MigrationInterface {
     }
 
 }
+
+        
+-----------------------------------------------------------------APPLIED CODE----------------------------------------------------------------------------
+        
+        import {MigrationInterface, QueryRunner, TableColumn} from "typeorm";
+
+export class UpdateProfileTable1683803983836 implements MigrationInterface {
+
+    public async up(queryRunner: QueryRunner): Promise<void> {
+
+
+        if (!(await queryRunner.hasColumn('profile', 'userCode'))) {
+            await queryRunner.addColumn('profile', new TableColumn({
+                name: 'userCode',
+                type: 'string',
+                default: null
+              }),
+            );
+          }
+
+
+          if (!(await queryRunner.hasColumn('profile', 'referralCode'))) {
+            await queryRunner.addColumn('profile', new TableColumn({
+                name: 'referralCode',
+                type: 'string',
+                default: null
+              }),
+            );
+          }
+
+        }
+    public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.rollbackTransaction()
+    }
+
+}
