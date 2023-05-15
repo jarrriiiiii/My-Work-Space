@@ -1,0 +1,21 @@
+@Get('getAllPWProduct/:id')
+@hasModulePermission(moduleType.inventories)
+getAllPWProduct(@Param('id') id: number) {
+    return this.propertyWalletProductService.getAllPWProduct(+id);
+}
+
+
+----------------
+
+  async getAllPWProduct(id : number) : Promise<ResponseDto>{
+    try {
+      const PWProductRepo = getRepository(PropertyWalletProduct)
+      const PWProductResult = PWProductRepo.createQueryBuilder('PropertyWalletProduct')
+      .where('PropertyWalletProduct.id = :id', {id})
+      const totalItems = await PWProductResult.getMany();
+      console.log(totalItems)
+      return { message: commonMessage.get, data: totalItems };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
