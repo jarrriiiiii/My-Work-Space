@@ -1,0 +1,33 @@
+@Get('/getProductDetailForStep2/:propertyWalletProductId')
+@hasModulePermission(moduleType.projectDetails,moduleType.newProject)
+@UseInterceptors(TransformInterceptor)
+getProductDetailForStep2(@Param('propertyWalletProductId') propertyWalletProductId : number){
+  return this.propertyWalletProductService.getProductDetailForStep2(+propertyWalletProductId)
+}
+
+
+
+
+-------------
+
+  async getProductDetailForStep2(propertyWalletProductId : number):Promise <ResponseDto>{
+    try {
+      const inventoryRepo = getRepository(PropertyWalletProduct);
+      const data = await inventoryRepo.createQueryBuilder('PropertyWalletProduct')
+      .select([
+        'PropertyWalletProduct.id',
+        // 'PropertyWalletProduct.title'
+      ])
+      .where('PropertyWalletProduct.id = :propertyWalletProductId',{propertyWalletProductId})
+      .leftJoinAndSelect('PropertyWalletProduct.propertyWalletProductPhoto','propertyWalletProductPhoto')
+      // .leftJoinAndSelect('PropertyWalletProduct.propertyWalletProjectDocument','propertyWalletProjectDocument')
+      .getOne()
+      return {message : commonMessage.get , data : data}
+      } catch (error) {
+        throw new InternalServerErrorException(error);
+      }
+  }
+
+
+
+
