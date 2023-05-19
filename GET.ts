@@ -40,6 +40,24 @@ end.setDate(start.getDate() + 1);
   }
   
  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 /////////////////////////////////////////////////////////////////////////////////////
 //get , fetch, getMany, retrieve, get records specific particular selected selective limited data column from the db table
   
@@ -52,9 +70,7 @@ async GetInventoryData(): Promise<any>{
     return { message: commonMessage.get, data: data };
 
   }
-  
-  
-/////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
  //get , fetch, getMany, retrieve, get records specific particular selected selective limited data column from the db table
   
       async getAllProjects(): Promise<ResponseDto> {
@@ -70,30 +86,145 @@ async GetInventoryData(): Promise<any>{
       }
     }
 
-  
-  ///////////////////////////////////////////////////////
-  //get , fetch, getMany, retrieve, get records specific particular selected selective limited data column from the joining with multiple tables db table left join relation table database
-  
-      async GetInventoryData(): Promise<any>{
-    const getData = getRepository(Inventory);
-    const result =  getData.createQueryBuilder('getData')
-
-
-    .select(['getData.title', 'getData.price', 'getData.price','getData.description','x.NOC','y.createdAt', 'z.logo','a.createdAt'])
-    .leftJoin('getData.project', 'x')
-    .leftJoin('getData.projectType', 'y')
-    .leftJoin('getData.projectSubType', 'z')
-    .leftJoin('getData.landArea', 'a')
+ 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//get by id , fetch by id, getMany, retrieve, get records specific particular selected selective limited data column from the db table database
     
+    
+    async getProductDetail (id : number){
+  try {
+    const productRepo = getRepository(
+      PropertyWalletProduct
+    );
+    const data = await productRepo.createQueryBuilder('p')
+    .where('p.id = :id', {id})
+    .leftJoinAndSelect('p.projectType','projectType')
+    .leftJoinAndSelect('p.ProjectSubType','ProjectSubType')
+    .getOne()
+    return data
 
-    const data = await result.getMany();
-    console.log(data)
-    return { message: commonMessage.get, data: data };
+  } catch (error) {
+    throw new InternalServerErrorException(error);
+  }
+}
+ 
+    
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//get by id , fetch by id, getMany, retrieve, get records specific particular selected selective limited data column from the db table database
+//matching match compare comparing lists array for same items, send true for matching, send false for not match matching
+//left join, relation
+ 
+    async getUtil(propertyWalletInventoryId :number): Promise<ResponseDto> {
+      try {
+        const PWMURepo = getRepository(PropertyWalletMultiUtilities);
+        const utilRepo = getRepository(Util); 
+        const utilResult = await utilRepo.createQueryBuilder('util')
+        .getMany()
 
+        const PWMUResult = PWMURepo.createQueryBuilder('PropertyWalletMultiUtilities')
+        .select([
+          'PropertyWalletMultiUtilities.id',
+          'PropertyWalletMultiUtilities.propertyWalletInventoryId',
+          'PropertyWalletMultiUtilities.propertyWalletUtilId',
+          'propertyWalletUtil.id',
+          'propertyWalletUtil.title',
+        ])
+        .where('PropertyWalletMultiUtilities.propertyWalletInventoryId = :propertyWalletInventoryId',{propertyWalletInventoryId})
+        .leftJoin('PropertyWalletMultiUtilities.propertyWalletUtil','propertyWalletUtil')
+        const data = await PWMUResult.getMany();
+
+        for(let x of utilResult){
+          x['abc'] = false
+          for(let y of data){
+            if(x.id == y.id) {
+              x['abc'] = true
+            }
+          }
+        }
+        return {
+          message: commonMessage.get,
+          data: utilResult,
+        };
+      } catch (error) {
+        throw new InternalServerErrorException(error);
+      }
+    }
+}
+ 
+    
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //get , fetch, getMany, retrieve, get records specific particular selected selective limited data column from the joining with multiple tables db table left join relation table database
+  //get by id using pagination, paginate,
+ 
+  @Get('/getAvailableInventoriesByProjectId/:ProjectId')
+  getAvailableInventoriesByProjectId(@Param('ProjectId') ProjectId: string, @Query('page', ParseIntPipe) page: number,
+  @Query('limit', ParseIntPipe) limit: number,
+  ) {
+    return this.propertyWalletInventoryPlotService.getAvailableInventoriesByProjectId(+ProjectId, page, limit);
   }
 
+   
+    async getAvailableInventoriesByProjectId(ProjectId: number, page: number, limit: number): Promise<ResponseDto> {
+  try {
+    const convoRepo = getRepository(PropertyWalletProject);
+    const convoList = await convoRepo
+    .createQueryBuilder('con')
+    .select([
+      'con.id', //main repo table
+      'con.city', //main repo table
+      'propertyWalletInventory.price', //1st joined table
+      'propertyWalletInventory.landSize', //1st joined table
+      'landArea.id', //2nd joined table
+      'landArea.title' //2nd joined table
+    
+    ])
+    .where('con.id =:projectId', {projectId: ProjectId})
+    .leftJoin('con.propertyWalletInventory', 'propertyWalletInventory') //joining this table from the main repo table
+    .leftJoin('propertyWalletInventory.landArea','landArea') //joining this from the ABOVE JOINED table
 
-  ////////////////////////////////////////////////////////////////////////////////////
+
+    const totalItems = await convoList.getCount();
+    const Data = await paginate<PropertyWalletProject>(convoList, {
+      limit,
+      page,
+      paginationType: PaginationTypeEnum.TAKE_AND_SKIP,
+      metaTransformer: ({ currentPage, itemCount, itemsPerPage }) => {
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        return {
+          currentPage,
+          itemCount,
+          itemsPerPage,
+          totalPages,
+          
+        }
+      }
+    })
+
+    return { message: commonMessage.get, data: Data };
+
+  } catch (error) {
+    throw new InternalServerErrorException(error);
+  }
+}
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+////////////////////////////////////////////////////////////////////////////////////
 //get count, total number, serial number, number of entries, objects, items in table database db entities entity, getCount
 
 async allAgenciesCount() {
@@ -147,7 +278,6 @@ async allAgenciesCount() {
 
 ///////////////////////////////////////////////////////////////////////////////////////
 ////get count, total number, serial number, number of entries, objects, items in table database db entities entity, getCount, within the last 24 hours hrs, specific particular time range, limited time span, time interval
-
 // It then selects the count of user IDs using user.select(['COUNT(user.id)']). It filters the results by adding a WHERE clause using user.where('user.isVerified = :verify' , {verify : true}), which selects only verified users.
 
 
@@ -166,48 +296,6 @@ async allAgenciesCount() {
     }
   }
 
-//////////////////////////////////////////////////////////////////////////////////
-//get count, total number, serial number, number of entries, objects, items in table database db entities entity, getCount, within the last 24 hours hrs, specific particular time range, limited time span, time interval
-//The first query counts all users with roles of 'agentManager' or 'agentStaff'. The second query counts all users with roles of 'agentManager' or 'agentStaff' that were created within the last 24 hours. leftJoinAndSelect
-  
-
-  async getNoOfRegisteredStaff() {
-      try{
-        
-      const userRepo = getRepository(User)
-      const result = await userRepo.createQueryBuilder('u')
-      .select('COUNT(u.id)') 
-
-
-      //This line performs a left join between the User and Role entities, and sets the alias for the Role entity to role. 
-      // This allows us to access the title property of the role later in the query.
-      .leftJoinAndSelect('u.role', 'role') 
-
-      //This line filters the query to only include users who have a role title of 'agentManager' or 'agentStaff'
-      //The IN operator is used to match the title property against an array of values '[RoleType.agentManager, RoleType.agentStaff]'
-      .where('role.title IN (:...title)', { title : [RoleType.agentManager , RoleType.agentStaff]})
-
-      //This line executes the query and returns the count of user IDs that match the filter conditions. 
-      .getCount();
-
-
-      //This is another query to get the count of users created in the last 24 hours who have the roles of agentManager or agentStaff
-      const result1 = await userRepo.createQueryBuilder('u')
-      .select('COUNT(u.id)')
-      .where("u.createdAt >= NOW() - INTERVAL '24 HOUR'")
-      .leftJoinAndSelect('u.role', 'role')
-      .andWhere('role.title IN (:...title)', { title : [RoleType.agentManager , RoleType.agentStaff]})
-      .getCount();
-      
-      
-      return {message: commonMessage.get , data : { userCount: result, last24hourCount : result1} }
-
-    }catch(error){  
-      throw new InternalServerErrorException(error);
-    }
-  }
-  
-
 /////////////////////////////////////////////////////////////////////////////////////
 ////get count, total number, serial number, number of entries, objects, items in table database db entities entity, getCount, within the last 24 hours hrs, specific particular time range, limited time span, time interval, retrieve the total count of units in an inventory, as well as the number of units added in the last 24 hours.
 
@@ -224,8 +312,6 @@ async getNoOfUnits() {
       throw new InternalServerErrorException(error);
     }
   }
-    
-    
     
 /////////////////////////////////////////////////////////////////////////////////////
 //get count, total number, serial number, number of entries, objects, items in table database db entities entity, getCount by Project Inventory ID
@@ -244,7 +330,23 @@ async getNoOfUnits() {
   }
     
    
-///////////////////////////////////////////////////////////////////////
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Calculate sum, add, addition, total amount, total added, total sum of items, records, objects, entities, in database table db, calculates the total revenue earned from finalized sales
 
 
@@ -332,26 +434,7 @@ async salesQuotation() {
   }
 
     
-/////////////////////////////////////
-//get by id , fetch by id, getMany, retrieve, get records specific particular selected selective limited data column from the db table database
-    
-    
-    async getProductDetail (id : number){
-  try {
-    const productRepo = getRepository(
-      PropertyWalletProduct
-    );
-    const data = await productRepo.createQueryBuilder('p')
-    .where('p.id = :id', {id})
-    .leftJoinAndSelect('p.projectType','projectType')
-    .leftJoinAndSelect('p.ProjectSubType','ProjectSubType')
-    .getOne()
-    return data
 
-  } catch (error) {
-    throw new InternalServerErrorException(error);
-  }
-}
 
     
     
@@ -359,96 +442,3 @@ async salesQuotation() {
     
     
     
-    ////////////////////////////////////
- 
-    async getUtil(propertyWalletInventoryId :number): Promise<ResponseDto> {
-      try {
-        const PWMURepo = getRepository(PropertyWalletMultiUtilities);
-        const utilRepo = getRepository(Util); 
-        const utilResult = await utilRepo.createQueryBuilder('util')
-        .getMany()
-
-        const PWMUResult = PWMURepo.createQueryBuilder('PropertyWalletMultiUtilities')
-        .select([
-          'PropertyWalletMultiUtilities.id',
-          'PropertyWalletMultiUtilities.propertyWalletInventoryId',
-          'PropertyWalletMultiUtilities.propertyWalletUtilId',
-          'propertyWalletUtil.id',
-          'propertyWalletUtil.title',
-        ])
-        .where('PropertyWalletMultiUtilities.propertyWalletInventoryId = :propertyWalletInventoryId',{propertyWalletInventoryId})
-        .leftJoin('PropertyWalletMultiUtilities.propertyWalletUtil','propertyWalletUtil')
-        const data = await PWMUResult.getMany();
-
-        for(let x of utilResult){
-          x['abc'] = false
-          for(let y of data){
-            if(x.id == y.id) {
-              x['abc'] = true
-            }
-          }
-        }
-        return {
-          message: commonMessage.get,
-          data: utilResult,
-        };
-      } catch (error) {
-        throw new InternalServerErrorException(error);
-      }
-    }
-}
-    
-    
-    
-    
-    
-    
-    
-    
--------------------------------------------------------------------------------------------------
-//download, Generate, export, get, retrieve, xlsx excel sheet xls spreadsheet, object, array to xlsx excel sheet xls spreadsheet
-    
- @Get('ExportToExcel') //Controller
-  ExportToExcel(@Res() res: Response): void {
-    return this.excelExportService.ExportToExcel(res);}
-
-export class ExcelExportService { //Service file
-
-  private people: Person[] = [
-    {
-      name: 'John Smith',
-      age: 34,
-      address: '123 Main St',
-      country: 'USA'
-    },
-    {
-      name: 'Jane Doe',
-      age: 25,
-      address: '456 Elm St',
-      country: 'Canada'
-    },];
-
-    ExportToExcel(@Res() res: Response): void {
-      try {
-          const sheetData = xlsx.utils.json_to_sheet(this.people);
-          const wb = xlsx.utils.book_new();
-          xlsx.utils.book_append_sheet(wb, sheetData, 'People');
-          const fileBuffer = xlsx.write(wb, { type: 'buffer' });
-         res.setHeader(
-            'Content-Disposition',
-            'attachment; filename=' + 'people.xlsx',
-          );
-          res.setHeader('Content-Type', 'application/vnd.ms-excel');
-          res.setHeader('Content-Length', fileBuffer.length)
-          res.send(fileBuffer);
-      } catch (error) {
-        throw new InternalServerErrorException(error);}}}
-    
-export interface Person {
-    name: string;
-    age: number;
-    country: string;
-    address: string;
-  }
-    
-----------------------------------------------------------------------------
