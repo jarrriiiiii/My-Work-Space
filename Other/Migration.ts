@@ -63,3 +63,60 @@ export class UpdateProfileTable1683803983836 implements MigrationInterface {
     }
 
 }
+
+
+        
+        
+----------------------------------------------------------------------------------------------------------------------
+        
+        
+
+export class AssignCodeToOldUsers1683805409255 implements MigrationInterface {
+    public async up(queryRunner: QueryRunner): Promise<void> {
+        
+        await queryRunner.connect()
+        await queryRunner.startTransaction()
+        try {
+            const ProfileRepo =  queryRunner.manager.getRepository(Profile);
+            const users = await ProfileRepo.createQueryBuilder('profile')
+            .select('profile.id')
+            .where('profile.userCode is null')
+            .getMany();
+            for(let data of users){
+                const chars = [
+                    process.env.GENERATE_PASS_1,
+                    process.env.GENERATE_PASS_2
+                  ];
+                  const code = [3, 3]
+                    .map(function (len, i) {
+                      return Array(len)
+                        .fill(chars[i])
+                        .map(function (x) {
+                          return x[Math.floor(Math.random() * x.length)];
+                        })
+                        .join('');
+                    })
+                    .concat()
+                    .join('')
+                    .split('')
+                    .sort(function () {
+                      return 0.5 - Math.random();
+                    })
+                    .join('');
+                await ProfileRepo.update({id : data.id},{userCode : code})
+            }
+
+            await queryRunner.commitTransaction()
+
+        } 
+         catch (error) {
+            await queryRunner.rollbackTransaction()
+            console.log(error)
+            }
+         }
+
+    public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.rollbackTransaction()
+    }
+
+}
