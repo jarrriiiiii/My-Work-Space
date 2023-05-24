@@ -48,6 +48,23 @@ end.setDate(start.getDate() + 1);
     
     
     
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -248,6 +265,43 @@ async GetInventoryData(): Promise<any>{
         throw new InternalServerErrorException(error);
       }
     }
+    
+      @Get('getCurrentHotList')
+  @hasModulePermission(moduleType.hotListing)
+  @UseInterceptors(TransformInterceptor)
+  getCurrentHotList() {
+    return this.propertyWalletHotListingService.getCurrentHotList();
+  }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
+//get , fetch, getMany, retrieve, get records, latest time, from today, from today date from the table db table table database
+//order by descending order, sort by latest date time, sort by status, 
+  async getCurrentHotList(): Promise <ResponseDto> {
+
+    try{
+      const PWHotListingRepo = getRepository(PropertyWalletHotListing)
+
+      // const timestamp: Date = new Date();
+      // const isoString: string = timestamp.toISOString();
+      // const today: string = isoString.replace("Z", "+00:00");
+      // console.log(`createdAt: ${today}`);
+
+
+      const today = new Date().toISOString().split('T')[0]
+      console.log(today)
+      
+      const Result  = PWHotListingRepo.createQueryBuilder('hot')
+      .where("hot.status = :status AND DATE(hot.createdAt) <= :today", { status: 'OPEN', today })
+      .orderBy('hot.createdAt', 'DESC')
+      const Data = await Result.getMany()
+       console.log(Data)
+
+      return { message: commonMessage.get , data : Data}
+
+    }catch(err){
+      throw new InternalServerErrorException(err)
+    }
+  }
 
 
 
@@ -257,6 +311,21 @@ async GetInventoryData(): Promise<any>{
     
     
     
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
     
     
     
@@ -373,6 +442,21 @@ async getNoOfUnits() {
     
    
 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
