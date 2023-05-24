@@ -58,7 +58,7 @@ return this.propertyWalletInventoryPlotService.DeletePWInventoryPlot(+id);
      
 
 -----------------------------------------------------------------------------------
-  //deletes all PDF records that were created on a particular date, delete on given date, delete date wise, delete by id ,delete by date, delete by range, hard delete by dto, remove by dto
+  //deletes all PDF records items data that were created on a particular date, delete on given date, delete date wise, delete by id ,delete by date, delete by range, hard delete by dto, remove by dto
 
 
 async deletePDF(dateDto : DateDto):Promise<ResponseDto> {{
@@ -95,7 +95,7 @@ async deletePDF(dateDto : DateDto):Promise<ResponseDto> {{
 }
 }
 -----------------------------------------------------------------------------------------------------------------------
-     
+//Delete by condition
      
 @Delete('delete/single/property-wallet-product-photo')
 deletePropertyWalletProductPhoto(@Body() propertyWalletProductPhotoDeleteDto: PropertyWalletProductPhotoDeleteDto) {
