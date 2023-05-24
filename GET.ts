@@ -211,11 +211,7 @@ async GetInventoryData(): Promise<any>{
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //get , fetch, getMany, retrieve, get records from multiple many tables db table entity entities, get by id , fetch by id, getMany, retrieve
 //import importing multiple many more than one repo repository repositories tables db table entity entities
-?????????????
-    
-    ??
-    ???
-    
+//passing output result data in the object as response
     
     
   @Get('getInventoryDetailStep2/:propertyWalletInventoryId')
@@ -225,16 +221,11 @@ async GetInventoryData(): Promise<any>{
   }
 
     
-    
     async getInventoryDetailStep2(propertyWalletInventoryId : number):Promise<ResponseDto> {
       try {
         const premiumFeatureRepo = getRepository(PropertyWalletFeature)
         const buisnessAndCommRepo = getRepository(PropertyWalletBusinessAndCommunication)
-        const propertyWalletMultiUtilitiesRepo = getRepository(PropertyWalletMultiUtilities)
-        const propertyWalletOtherFacilityRepo = getRepository(PropertyWalletOtherFacility)
-        const otherNearByLocationRepo = getRepository(OtherNearByLocation)
-        const propertyWalletRoomRepo = getRepository(PropertyWalletRoom)
-        const propertyWalletInventoryRepo = getRepository(PropertyWalletInventory)
+
 
         const premiumFeatureData = await premiumFeatureRepo.createQueryBuilder('pwf')
           .where('pwf.propertyWalletInventoryId = :propertyWalletInventoryId', { propertyWalletInventoryId })
@@ -244,37 +235,13 @@ async GetInventoryData(): Promise<any>{
           .where('bc.propertyWalletInventoryId = :propertyWalletInventoryId', { propertyWalletInventoryId })
           .getOne();
         
-        const propertyWalletMultiUtilitiesData = await propertyWalletMultiUtilitiesRepo.createQueryBuilder('ut')
-          .leftJoinAndSelect('ut.propertyWalletUtil','propertyWalletUtil')
-          .where('ut.propertyWalletInventoryId = :propertyWalletInventoryId', { propertyWalletInventoryId })
-          .getOne();
-        
-        const propertyWalletOtherFacilityData = await propertyWalletOtherFacilityRepo.createQueryBuilder('of')
-          .where('of.propertyWalletInventoryId = :propertyWalletInventoryId', { propertyWalletInventoryId })
-          .getOne();
-        
-        const otherNearByLocationData = await otherNearByLocationRepo.createQueryBuilder('onbl')
-          .where('onbl.propertyWalletInventoryId = :propertyWalletInventoryId', { propertyWalletInventoryId })
-          .getOne();
-        
-        const propertyWalletRoomData = await propertyWalletRoomRepo.createQueryBuilder('pwr')
-          .where('pwr.propertyWalletInventoryId = :propertyWalletInventoryId', { propertyWalletInventoryId })
-          .getOne();
-
-        const propertyWalletInventory = await propertyWalletInventoryRepo.createQueryBuilder('pwi')
-          .select(['pwi.projectTypeId', 'pwi.projectSubTypeId'])
-          .where('pwi.id = :propertyWalletInventoryId', { propertyWalletInventoryId })
-          .getOne();
+     
 
         
         let data = new Object();
         data['premiumFeatures'] = premiumFeatureData ? premiumFeatureData : null;
         data['buisnessAndCommunication'] = buisnessAndCommData ? buisnessAndCommData : null;
         data['utilities'] = propertyWalletMultiUtilitiesData ? propertyWalletMultiUtilitiesData : null;
-        data['otherFacilities'] = propertyWalletOtherFacilityData ? propertyWalletOtherFacilityData: null;
-        data['otherNearByLocations'] = otherNearByLocationData ? otherNearByLocationData : null;
-        data['rooms'] = propertyWalletRoomData ? propertyWalletRoomData : null;
-        data['projectTypeId'] = propertyWalletInventory ? propertyWalletInventory : null;
 
         return { message: commonMessage.get, data: data };
       } catch (error) {
