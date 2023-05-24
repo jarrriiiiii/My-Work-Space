@@ -14,7 +14,35 @@
   }
 
   
- /////////////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////////
+//get all the data from the db table, fetch all, getMany, retrieve all, get all items, get all records by id
+
+    
+    @Get('getAllPWProduct/:id')
+@hasModulePermission(moduleType.inventories)
+getAllPWProduct(@Param('id') id: number) {
+    return this.propertyWalletProductService.getAllPWProduct(+id);
+}
+
+  async getAllPWProduct(id : number) : Promise<ResponseDto>{
+    try {
+      const PWProductRepo = getRepository(PropertyWalletProduct)
+      const PWProductResult = PWProductRepo.createQueryBuilder('PropertyWalletProduct')
+      .where('PropertyWalletProduct.id = :id', {id})
+      const totalItems = await PWProductResult.getMany();
+      console.log(totalItems)
+      return { message: commonMessage.get, data: totalItems };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+    
+    
+    
+    
+ //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
  //get all the data from the db table, fetch all, getMany, retrieve all, get all items within a given date range, specific date, limited date, time range
 
   
@@ -266,16 +294,21 @@ async GetInventoryData(): Promise<any>{
       }
     }
     
-      @Get('getCurrentHotList')
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
+//get , fetch, getMany, retrieve, get records, latest time, from today, from today date from the table db table table database
+//order by descending order, sort by latest date time, sort by status, 
+    
+    
+    
+  @Get('getCurrentHotList')
   @hasModulePermission(moduleType.hotListing)
   @UseInterceptors(TransformInterceptor)
   getCurrentHotList() {
     return this.propertyWalletHotListingService.getCurrentHotList();
   }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
-//get , fetch, getMany, retrieve, get records, latest time, from today, from today date from the table db table table database
-//order by descending order, sort by latest date time, sort by status, 
+     
   async getCurrentHotList(): Promise <ResponseDto> {
 
     try{
