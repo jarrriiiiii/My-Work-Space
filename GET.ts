@@ -1,7 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////////
 //get all the data from the db table, fetch all, getMany, retrieve all, get all items, get all records
 
-
   async getRoleList():Promise<ResponseDto> {
     try {
       const adminRole = getRepository(AdminRole)
@@ -19,7 +18,6 @@
 ///////////////////////////////////////////////////////////////////////////////////
 //get all the data from the db table, fetch all, getMany, retrieve all, get all items, get all records by id
 
-    
     @Get('getAllPWProduct/:id')
 @hasModulePermission(moduleType.inventories)
 getAllPWProduct(@Param('id') id: number) {
@@ -41,11 +39,10 @@ getAllPWProduct(@Param('id') id: number) {
     
     
     
-    
+ 
  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
  //get all the data from the db table, fetch all, getMany, retrieve all, get all items within a given date range, specific date, limited date, time range
 
-  
   async getAllApi(dateDto):Promise<ResponseDto> {
   try {
 const start = new Date(dateDto.date);
@@ -88,6 +85,13 @@ end.setDate(start.getDate() + 1);
     
     
     
+  
+  
+  
+  
+  
+  
+  
     
     
     
@@ -103,6 +107,19 @@ end.setDate(start.getDate() + 1);
     
     
     
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 /////////////////////////////////////////////////////////////////////////////////////
 //get , fetch, getMany, retrieve, get records specific particular selected selective limited data column from the db table
   
@@ -131,7 +148,6 @@ async GetInventoryData(): Promise<any>{
       }
     }
 
- 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //get by id , fetch by id, getMany, retrieve, get records specific particular selected selective limited data column from the db table database
     
@@ -153,7 +169,6 @@ async GetInventoryData(): Promise<any>{
   }
 }
  
-    
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //get by id , fetch by id, getMany, retrieve, get records specific particular selected selective limited data column from the db table database
 //matching match compare comparing lists array for same items, send true for matching, send false for not match matching
@@ -251,8 +266,6 @@ async GetInventoryData(): Promise<any>{
     throw new InternalServerErrorException(error);
   }
 }
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //get , fetch, getMany, retrieve, get records from multiple many tables db table entity entities, get by id , fetch by id, getMany, retrieve
 //import importing multiple many more than one repo repository repositories tables db table entity entities
@@ -293,14 +306,43 @@ async GetInventoryData(): Promise<any>{
         throw new InternalServerErrorException(error);
       }
     }
-    
+ 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//get , fetch, getMany, retrieve, get records specific particular selected selective limited data column from the db table if condition matches, bind data in object, by loop
+//passing output result data, binding data in the object as response if condition matches, conditional result
+//loop, binding data
 
+ @Get('/isAgencyWithinRadius')
+  isAgencyWithinRadius(@Query() isAgencyWithinRadiusDto : IsAgencyWithinRadiusDto) {
+    return this.dashboardService.isAgencyWithinRadius(isAgencyWithinRadiusDto);
+  }
+
+
+async isAgencyWithinRadius(
+  isAgencyWithinRadiusDto : IsAgencyWithinRadiusDto,
+): Promise<any> {
+
+  const promotionRepo = getRepository(Agency)
+  const result = await promotionRepo.createQueryBuilder('agency')
+  .select(['agency.latitude', 'agency.longitude', 'agency.id', 'agency.agencyName'])
+  .getMany()
+
+  let locations = []
+
+for (const agency of result) {
+ const aa = geolib.isPointWithinRadius(
+{ latitude:agency.latitude, longitude: agency.longitude },{ latitude: isAgencyWithinRadiusDto.latitude, longitude: isAgencyWithinRadiusDto.longitude }, +isAgencyWithinRadiusDto.radius);
+
+if(aa){
+  locations.push({ agencyId: agency.id, agencyName: agency.agencyName, latitude:agency.latitude, longitude: agency.longitude,  })
+}}
+return locations
+}  
+    
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
 //get , fetch, getMany, retrieve, get records, latest time, from today, from today date from the table db table table database
 //order by descending order, sort by latest date time, sort by status, 
-    
-    
     
   @Get('getCurrentHotList')
   @hasModulePermission(moduleType.hotListing)
@@ -361,7 +403,24 @@ async GetInventoryData(): Promise<any>{
         
     
     
+  
+  
+  
+  
+  
+  
+  
+  
+  
     
+  
+  
+  
+  
+  
+  
+  
+  
     
     
     
@@ -375,7 +434,6 @@ async allAgenciesCount() {
     try{
       const NoOfagency = getRepository(Agency).createQueryBuilder('agency');
       const result = await NoOfagency.select(['agency.id']).getCount()
-
       return {message: commonMessage.get , data : {AllAgency : result}}
     }
     catch(error){
@@ -419,12 +477,9 @@ async allAgenciesCount() {
       throw new InternalServerErrorException(error);
     }
   }
-
 ///////////////////////////////////////////////////////////////////////////////////////
 ////get count, total number, serial number, number of entries, objects, items in table database db entities entity, getCount, within the last 24 hours hrs, specific particular time range, limited time span, time interval
 // It then selects the count of user IDs using user.select(['COUNT(user.id)']). It filters the results by adding a WHERE clause using user.where('user.isVerified = :verify' , {verify : true}), which selects only verified users.
-
-
 
   async getRegisteredUsers():Promise<ResponseDto> {
     try{
@@ -496,9 +551,20 @@ async getNoOfUnits() {
     
     
     
+
+
+
+
+
+
     
     
     
+
+
+
+
+
     
     
     
@@ -521,8 +587,6 @@ async salesQuotation() {
       throw new InternalServerErrorException(error);
     }
   }
-
-
 ///////////////////////////////////////////////////////////////////////////////////////
 //Calculate sum, add, addition, total amount, total added, total sum of items, objects, entities, in database table db, Selling Price of all 'SaleQuotation' entities whose status property is 'SOLD' and whose FinalizeSale relation has a status property with value 'APPROVED'. Total calculated sum addition of Selling prices created in the last 24 hours, and whose status is "SOLD", and whose associated finalizeSale status is "APPROVED".  
 
@@ -562,7 +626,6 @@ async salesQuotation() {
   //////////////////////////////////////////////////////////////////////////////////
   //Calculate sum, add, addition, total amount, total added, total sum of items, objects, entities, in database table db, get the total selling price of all SaleQuotation records that have been sold and whose finalizeSale records have been approved, calculating and storing the revenue and trend values based on the data retrieved from the previous queries, allowing for further analysis or visualization of the data. 
   
-  
   async getRevenueWithTrend() {
   try{
 
@@ -593,6 +656,19 @@ async salesQuotation() {
   }
 
     
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -660,8 +736,7 @@ async generateExcel(@Res() res: Response): Promise<void> {
     throw new InternalServerErrorException(error);
   }
 }
-    
-    
-    
-    
-    
+  
+
+
+
