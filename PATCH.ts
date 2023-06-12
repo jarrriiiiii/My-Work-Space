@@ -104,3 +104,47 @@ async invoiceIsPaidCallBack(InvoiceNumber : string): Promise<ResponseDto> {
       }
     }
 
+
+
+
+/////////////////
+
+
+  @Patch('editAdminUsersRole/:userId')
+  // @hasModulePermission(moduleType.referrals)
+  @UseInterceptors(TransformInterceptor)
+  editAdminUsersRole(@Param('userId') userId: string, @Body() updateAdminUserDto: UpdateAdminUserDto) {
+    return this.appUserService.editAdminUsersRole(+userId , updateAdminUserDto );
+  }
+
+
+
+    async editAdminUsersRole(userId: number, updateAdminUserDto: UpdateAdminUserDto ): Promise<ResponseDto> {
+      const queryRunner = this.connection.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+      try {
+        const adminUserAuthRepo = queryRunner.manager.getRepository(AdminUserAuth)
+        const checkUser = await adminUserAuthRepo.createQueryBuilder('u')
+        .where('u.id = :id' , { id :userId })
+        .leftJoinAndSelect('u.adminRole', 'adminRole')
+        .andWhere('adminRole.title != :title', {title : 'admin'})
+        .getOne()
+        if(checkUser.id){
+          await adminUserAuthRepo.update({id : checkUser.id}, {adminRoleId : updateAdminUserDto.roleId})
+        }else {
+          throw new BadRequestException(commonMessage.idNotFound)
+        }
+          await queryRunner.commitTransaction();
+          return { message: commonMessage.update, data: {} };
+          
+      } catch (error) {
+        await queryRunner.rollbackTransaction();
+        throw new InternalServerErrorException(error);
+      } finally {
+        await queryRunner.release();
+      }
+    }
+
+
+
