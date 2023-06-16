@@ -1,0 +1,25 @@
+@Controller('pdfs')
+export class PdfsController {
+  @Get()
+  async getPdfsByDateRange(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setDate(end.getDate() + 1);
+
+    const getAll = getRepository(SaveAllPdf);
+    const result = await getAll
+      .createQueryBuilder('get')
+      .where('user.deletedAt is null')
+      .andWhere(`get.createdAt BETWEEN :startDate AND :endDate`, {
+        startDate: start.toISOString(),
+        endDate: end.toISOString(),
+      })
+      .getMany();
+
+    return result;
+  }
+}
