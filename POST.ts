@@ -38,7 +38,12 @@ async createToken(CreateDeviceTokenDto: CreateDeviceTokenDto): Promise<ResponseD
    
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //Save, post, store, data via through DTO in db table database, save by User ID, save by createdByAdmin, by using auth connection
-
+  @Post('createProductUtil')
+  @hasModulePermission(moduleType.propertiesDetails,moduleType.singleProperty)
+  @UseInterceptors(TransformInterceptor)
+  createProductUtil(@Body() createPropertyWalletProductUtilDto: CreatePropertyWalletProductUtilDto) {
+    return this.propertyWalletProductUtilsService.createProductUtil(createPropertyWalletProductUtilDto);
+  }
     
     async createProductUtil(createPropertyWalletProductUtilDto: CreatePropertyWalletProductUtilDto): Promise<ResponseDto> {
     const queryRunner = this.connection.createQueryRunner();
