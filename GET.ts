@@ -555,15 +555,23 @@ async getNoOfUnits() {
   }
     
    
+/////////////////////////////////////////////////////////////////////////////////////
+//get count, total number, serial number, number of entries, objects, items in table database db entities entity, getCount by ID
+  async getAgencyPropertyCount (agencyId : number) {
+  try {
+    
+const PropertyWalletInventoryRepo = await getRepository(Project)
+const propertyCount =  await PropertyWalletInventoryRepo.createQueryBuilder('Project')
+.leftJoin('Project.createdByUser', 'createdByUser')
+.leftJoin('createdByUser.profile', 'profile')
+.where('profile.agencyId = :agencyId', {agencyId :agencyId })
+.getCount()
 
-    
-    
-    
-    
-    
-    
-    
-    
+return propertyCount
+  } catch (error) {
+    throw new InternalServerErrorException(error);
+  }
+ }
     
     
     
