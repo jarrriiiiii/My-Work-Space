@@ -62,16 +62,39 @@ end.setDate(start.getDate() + 1);
     throw new InternalServerErrorException(error);
   }
 }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ //get all the data from the db table, fetch all, getMany, retrieve all, get all items within a given date range, specific date, limited date, time range
+
+
+@Controller('pdfs')
+export class PdfsController {
+  @Get()
+  async getPdfsByDateRange(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setDate(end.getDate() + 1);
+
+    const getAll = getRepository(SaveAllPdf);
+    const result = await getAll
+      .createQueryBuilder('get')
+      .where('user.deletedAt is null')
+      .andWhere(`get.createdAt BETWEEN :startDate AND :endDate`, {
+        startDate: start.toISOString(),
+        endDate: end.toISOString(),
+      })
+      .getMany();
+
+    return result;
   }
-  
- 
+}
     
-    
-    
-    
-    
-    
-    
+
     
 
     
@@ -118,7 +141,10 @@ end.setDate(start.getDate() + 1);
   
   
   
-  
+
+
+
+
   
 /////////////////////////////////////////////////////////////////////////////////////
 //get , fetch, getMany, retrieve, get records specific particular selected selective limited data column from the db table
