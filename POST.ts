@@ -160,6 +160,96 @@ return this.propertyWalletInventoryService.create(createPropertyWalletInventoryD
 
 
 
+ ----------------------------------------------------------------------------------------------------------------------------------------------
+//Saving, storing, save, store, post, object, data in object, through DTO Data in the Table database db entity, startTransaction, transaction
+//get data, retrieve data, from other tables, by id, left joins
+//binding data in object, saving save object in the db, bind data in object,
+//conditional enum saving
+     
+    @Post('createPWIWebPayment')
+  createPWPWebPayment(@Body() createPwiWebPaymentInfoDto: CreatePwiWebPaymentInfoDto) {
+    return this.pwiWebPaymentInfoService.createPWIWebPayment(createPwiWebPaymentInfoDto);
+  }
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+      async createPWIWebPayment(createPwiWebPaymentInfoDto: CreatePwiWebPaymentInfoDto): Promise<ResponseDto> {
+        const queryRunner = this.connection.createQueryRunner();
+        await queryRunner.connect()
+        await queryRunner.startTransaction()
+        
+        
+        try {
+          const PWIFinalizeSaleStageRepo = queryRunner.manager.getRepository(PropertyWalletInventoryFinalizeSaleStage);
+          const PWIFinalizeSaleStageResult = PWIFinalizeSaleStageRepo.createQueryBuilder('fs')
+          .select([
+            'fs.amount',
+            'fs.status',
+            'fs.blinqInvoiceId',
+
+            'blinqInvoice.ClickToPayUrl',
+            'propertyWalletInventoryFinalizeSale.id',
+            'propertyWalletInventorySaleQuotation.phone',
+          ])
+          
+          .where('fs.id = :propertyWalletInventoryFinalizeSaleId',{propertyWalletInventoryFinalizeSaleId: createPwiWebPaymentInfoDto.propertyWalletInventoryFinalizeSaleStageId})
+  
+        
+          .leftJoin('fs.blinqInvoice','blinqInvoice')
+          .leftJoin('fs.propertyWalletInventoryFinalizeSale','propertyWalletInventoryFinalizeSale')
+          .leftJoin('propertyWalletInventoryFinalizeSale.propertyWalletInventorySaleQuotation','propertyWalletInventorySaleQuotation')
+
+          const data = await PWIFinalizeSaleStageResult.getOne();
+  
+        
+          const PwiWebPaymentInfoRepo = queryRunner.manager.getRepository(PwiWebPaymentInfo);
+          const PwiAdminPaymentAssistanceRequestRepo = queryRunner.manager.getRepository(PwiAdminPaymentAssistanceRequest);
+         
+          
+        if(!data.blinqInvoiceId || !data.blinqInvoice.ClickToPayUrl){
+          throw new BadRequestException(commonMessage.BlinqIdNotFound)
+        }
+
+        if (createPwiWebPaymentInfoDto.type === PayFor.PAYBYCUSTOMER) {
+          const webPaymentObj = {
+            amount : data?.amount,
+            status : data?.status,
+            propertyWalletInventoryFinalizeSaleStageId :createPwiWebPaymentInfoDto.propertyWalletInventoryFinalizeSaleStageId,
+            phoneNo : data?.propertyWalletInventoryFinalizeSale?.propertyWalletInventorySaleQuotation?.phone,
+            url : data.blinqInvoice?.ClickToPayUrl ,
+            blinqInvoiceId : data?.blinqInvoiceId,
+            code : await this.generateCode()
+          }
+
+          const result = await PwiWebPaymentInfoRepo.save(webPaymentObj)
+          await queryRunner.commitTransaction()
+          return { message: commonMessage.create, data: result};
+          
+        }
+
+        if (createPwiWebPaymentInfoDto.type === PayFor.REQUESTASSISTANCE) {
+
+          const assistanceRequestObj = {
+            amount : data.amount,
+            status : data.status,
+            phone : data.propertyWalletInventoryFinalizeSale.propertyWalletInventorySaleQuotation.phone,
+            blinqUrl : data.blinqInvoice.ClickToPayUrl,
+            blinqInvoiceId : data.blinqInvoiceId,
+            randomCode : await this.generateCode()
+          }
+
+          const result = await PwiAdminPaymentAssistanceRequestRepo.save(assistanceRequestObj)
+          await queryRunner.commitTransaction()
+          return { message: commonMessage.create, data: result};
+        }
+      }
+  
+        catch (error) {
+          await queryRunner.rollbackTransaction();
+          throw new InternalServerErrorException(error);
+        }
+         finally {
+          await queryRunner.release();
+        }
+    }
     
