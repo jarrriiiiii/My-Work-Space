@@ -17,13 +17,7 @@ export class SearchGetUserManagementListDto {
 }
 
 
-
-
-
-
-
-
-
+----------------------------------------------------------------------------
   @Get('getUserManagementList')
   @hasModulePermission(moduleType.userManagement)
   @UseInterceptors(TransformInterceptor)
@@ -34,15 +28,7 @@ export class SearchGetUserManagementListDto {
   }
 
 
-
-
-
-
-
-
-
-
-
+----------------------------------------------------------------------------
   async getUserManagementList(page: number, limit: number, searchGetUserManagementListDto : SearchGetUserManagementListDto): Promise<ResponseDto> {
     try {
       const AdminUserAuthRepo = getRepository(AdminUserAuth);
