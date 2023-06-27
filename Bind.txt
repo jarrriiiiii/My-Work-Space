@@ -1,0 +1,43 @@
+  @forAllUser()
+  @Get('getPropertyWalletProductFinalizeSaleById/:id')
+  getPropertyWalletProductFinalizeSaleById(
+    @Param('id') id: string
+  ) {
+    return this.propertyWalletProductFinalizeSaleService.getPropertyWalletProductFinalizeSaleById(+id);
+  }
+
+
+
+
+
+
+  async getPropertyWalletProductFinalizeSaleById(id: number): Promise<ResponseDto> {
+    try {
+      const productFinalizeSaleRepo = getRepository(PropertyWalletProductFinalizeSale)
+      const productFinalizeSaleStageRepo = getRepository(PropertyWalletProductFinalizeSaleStage)
+      const userId = await this.authService.getUserId()
+
+      const data = await productFinalizeSaleRepo.createQueryBuilder('fs')
+        .select([
+          'fs.id', 'fs.createdAt', 'fs.totalAmount', 'fs.status', 'sq.id', 'sq.dealType', 'sq.clientName', 'sq.phone',
+          'pwp.title', 'pwp.ownerName', 'pwp.ownerPhone'
+        ])
+        .leftJoin('fs.propertyWalletProductSaleQuotation', 'sq')
+        .leftJoin('sq.propertyWalletProduct', 'pwp')
+        .where('fs.createdBy = :createdBy', { createdBy: userId })
+        .andWhere('fs.id = :id', { id })
+        .getOne()
+
+      const sumPaidStages = await productFinalizeSaleRepo.createQueryBuilder('fs')
+        .select('SUM(fss.amount)', 'paidAmount')
+        .leftJoin('fs.propertyWalletProductFinalizeSaleStage', 'fss')
+        .where('fs.createdBy = :createdBy', { createdBy: userId })
+        .andWhere('fs.id = :id', { id })
+        .andWhere('fss.status = :status', { status: payment.PAID })
+        .getRawOne()
+      data['paidAmount'] = sumPaidStages?.paidAmount ? sumPaidStages?.paidAmount : '0'
+      return { message: commonMessage.get, data };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
