@@ -402,12 +402,40 @@ return locations
     }catch(err){
       throw new InternalServerErrorException(err)
     }
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      @forAllUser() 
+  @Get('getAllFinalisedSaleForProject')
+  getAllFinalisedSaleForProject( @Query('page', ParseIntPipe) page: number, @Query('limit', ParseIntPipe) limit: number) {
+    return this.propertyWalletInventoryFinalizeSaleService.getAllFinalisedSaleForProject(page, limit);
   }
 
 
 
+  async getAllFinalisedSaleForProject(page: number, limit: number): Promise<any>{
+
+    const userId = await this.adminAuth.getAdminUserId();
     
-    
+    const getData = getRepository(PropertyWalletInventoryFinalizeSale);
+    const result =  getData.createQueryBuilder('PropertyWalletInventoryFinalizeSale')
+    .where('PropertyWalletInventoryFinalizeSale.createdBy = :createdBy', {createdBy : userId})
+
+    const totalItems = await result.getCount();
+    const Data = await paginate<PropertyWalletInventoryFinalizeSale>(result, {
+      limit,
+      page,
+      paginationType: PaginationTypeEnum.TAKE_AND_SKIP,
+      metaTransformer: ({ currentPage, itemCount, itemsPerPage }) => {
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        return {
+          currentPage,
+          itemCount,
+          itemsPerPage,
+          totalPages,
+        }
+      }
+    })
+    return { message: commonMessage.get, data: Data };
+  }
     
     
     
