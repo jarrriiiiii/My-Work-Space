@@ -1,4 +1,38 @@
+  @noModulePermission()
+  @Patch('/updateManualNotification/:id')
+  updateManualNotification(@Param('id') id : number, @Body() updateManualNotificationDto : UpdateManualNotificationDto){
+    return this.manualNotificationService.updateManualNotification(id, updateManualNotificationDto)
+  }
 
+
+  async updateManualNotification(id: number, updateManualNotificationDto : UpdateManualNotificationDto): Promise<ResponseDto> {
+
+    const runner = this.connection.createQueryRunner();
+    await runner.connect();
+    await runner.startTransaction();
+    try {
+      const repo = runner.manager.getRepository(ManualNotification);
+
+      const findCkeck = await repo.findOne({ id: id });
+      if (findCkeck.id) {
+        await repo.update(id, updateManualNotificationDto);
+      }else {
+        throw new BadRequestException(commonMessage.idNotFound)
+      }
+      await runner.commitTransaction();
+      const result = await repo.findOne({ id: id });
+
+      return { message: commonMessage.update , data : result };
+    } catch (err) {
+      await runner.rollbackTransaction();
+      throw new InternalServerErrorException(err);
+    }
+  }
+
+
+
+
+////////////////////////////////////////////////////////////////////////
   // @noModulePermission()
   @Patch('/updateManualNotification/:id')
   updateManualNotification(@Param('id') id : number, @Body() updateManualNotificationDto : UpdateManualNotificationDto){
