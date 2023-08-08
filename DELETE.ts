@@ -1,3 +1,38 @@
+//soft delete by title, soft delete by id, hard delete by dto, soft delete by id, soft delete, remove by id, remove by dto
+
+@noModulePermission()
+  @Delete('deleteManualNotification/:id') 
+  deleteManualNotification(@Param('id') id: number) {
+    return this.manualNotificationService.deleteManualNotification(+id);
+  }
+
+
+  async deleteManualNotification(id: number): Promise<any> {
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+    try {
+      const repo = queryRunner.manager.getRepository(ManualNotification);
+      const findCkeck = await repo.findOne({ id: id });
+      if (findCkeck.id) {
+        await repo.softDelete({ id: id}) 
+      }else {
+        throw new BadRequestException(commonMessage.idNotFound)
+      }
+      await queryRunner.commitTransaction()
+      return { message: commonMessage.delete, data: null }
+    }
+    catch (error) {
+      await queryRunner.rollbackTransaction()
+      throw new InternalServerErrorException(error)
+    }
+    finally {
+      await queryRunner.release()
+    }}
+  
+
+
+
 //hard delete by title, hard delete by id, hard delete by dto, hard delete by id, hard delete, remove by id, remove by dto
 
     @Delete('removeUtil')
