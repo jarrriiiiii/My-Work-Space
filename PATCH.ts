@@ -1,4 +1,49 @@
-  @Patch('/invoiceIsPaidCallBack/:InvoiceNumber')
+
+  // @noModulePermission()
+  @Patch('/updateManualNotification/:id')
+  updateManualNotification(@Param('id') id : number, @Body() updateManualNotificationDto : UpdateManualNotificationDto){
+    return this.manualNotificationService.updateManualNotification(id, updateManualNotificationDto)
+
+
+
+  async updateManualNotification(id: number, updateManualNotificationDto : UpdateManualNotificationDto): Promise<ResponseDto> {
+
+    const runner = this.connection.createQueryRunner();
+    await runner.connect();
+    await runner.startTransaction();
+    try {
+      const repo = runner.manager.getRepository(ManualNotification);
+
+      const findCkeck = await repo.find({ id: id });
+      if (findCkeck[0]) {
+        await repo.update(id, updateManualNotificationDto);
+        await runner.commitTransaction();
+      }
+      return { message: commonMessage.update };
+    } catch (err) {
+      await runner.rollbackTransaction();
+      throw new InternalServerErrorException(err);
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+@Patch('/invoiceIsPaidCallBack/:InvoiceNumber')
   invoiceIsPaidCallBack(@Param('InvoiceNumber') InvoiceNumber: string) {
     return this.blinqIntegrationService.invoiceIsPaidCallBack(InvoiceNumber);
   }
