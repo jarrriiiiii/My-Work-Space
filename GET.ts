@@ -183,7 +183,14 @@ async GetInventoryData(): Promise<any>{
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //get by id , fetch by id, getMany, retrieve, get records specific particular selected selective limited data column from the db table database
-    
+   
+        
+        
+  @Get('getPWProductById/:id')
+  getPWProductById(@Param('id') id: number) {
+    return this.propertyWalletProductService.getPWProductById(+id);
+}
+
     
     async getProductDetail (id : number){
   try {
