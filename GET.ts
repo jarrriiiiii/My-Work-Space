@@ -1,6 +1,13 @@
 ///////////////////////////////////////////////////////////////////////////////////
 //get all the data from the db table, fetch all, getMany, retrieve all, get all items, get all records
 
+
+  @Get('get-Roles-list')
+  getRoleList() {
+    return this.adminRolesService.getRoleList();
+  }
+
+
   async getRoleList():Promise<ResponseDto> {
     try {
       const adminRole = getRepository(AdminRole)
