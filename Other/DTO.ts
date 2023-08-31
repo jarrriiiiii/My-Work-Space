@@ -1,3 +1,12 @@
+export enum Type{
+    SaleQuotation = 'SaleQuotation',
+    SaleOrder = 'SaleOrder',
+    PaymentPlan = 'PaymentPlan',
+    Brochure = 'Brochure',
+    PostCreator = 'PostCreator'
+}
+
+
 export class CreateNotificationDto {
     @ApiProperty()
     @IsNumber()
@@ -30,55 +39,15 @@ export class CreateNotificationDto {
     @ApiProperty()
     @IsOptional()
     imageUrl : string
-}
-
-
-
-
-
-//////////////////////////////////////////
-
-
-
-export enum Type{
-    SaleQuotation = 'SaleQuotation',
-    SaleOrder = 'SaleOrder',
-    PaymentPlan = 'PaymentPlan',
-    Brochure = 'Brochure',
-    PostCreator = 'PostCreator'
-}
-
-export class CreateSaveAllPdfDto {
 
     @ApiProperty({ type: 'string', format: 'binary', required: true })
     freeTool: Express.Multer.File;
 
-
-
-
-@IsString()
-@IsNotEmpty()
-@ApiProperty()
-@IsEnum([Type.SaleQuotation, Type.SaleOrder , Type.PaymentPlan, Type.Brochure,Type.PostCreator ])
-status: string;
-
-// @ApiProperty()
-// @IsString()
-// @IsNotEmpty()
-refId: string;
-
-// @ApiProperty()
-// @IsString()
-// @IsNotEmpty()
-url: string;
-
-
-}
-
-
----------
-
-    export class CreatePropertyWalletProductStep1Dto {
+    @IsString()
+    @IsNotEmpty()
+    @ApiProperty()
+    @IsEnum([Type.SaleQuotation, Type.SaleOrder , Type.PaymentPlan, Type.Brochure,Type.PostCreator ])
+    status: string;
 
     @ApiProperty()
     @IsNumber()
@@ -116,6 +85,30 @@ url: string;
     @ApiProperty({ required: true })
     @IsPhoneNumber()
     phone: string
+
+    /////Placing another Sub-Dto as an array in the dto. 'CreateHotListingSubDto' is written below
+    @ApiProperty({ type: [CreateHotListingSubDto] }) 
+    createHotListingSubDto: CreateHotListingSubDto[];
 }
 
 
+
+
+
+export class CreateHotListingSubDto{
+
+    @ApiProperty()
+    @IsNotEmpty()
+    inventoryId: number;
+  
+    @ApiProperty()
+    @IsNumber()
+    @IsNotEmpty()
+    saleCommission: number;
+  
+    @ApiProperty({required : false})
+    @IsOptional()
+    isNegotiate : boolean;
+  
+  }
+  
