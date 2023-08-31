@@ -43,67 +43,82 @@ export class SearchGetUserManagementListDto {
 
 
 
+//ELASTIC SEARCH
+if (searchAppUserDto.fullName) {
+    Result.andWhere('LOWER(profile.fullName) like LOWER(:fullName)', {
+      fullName: `%${searchAppUserDto.fullName}%`,
+    });
+  }
 
+if (searchAppUserDto.email) {
+    Result.andWhere('LOWER(AdminUserAuth.email) like LOWER(:email)', {
+      email: `%${searchAppUserDto.email}%`,
+    });
+  }
+  
+
+if (searchAppUserDto.phone) {
+    const phone = searchAppUserDto.phone.replace(/[^0-9\.]+/g, '');
+    Result.andWhere('LOWER(AdminUserAuth.phone) like LOWER(:phone)', {
+      phone: `%${phone}%`,
+    });
+  }
+
+  if (searchAppUserDto.inventoryTitle) {
+    Result.andWhere('LOWER(inventory.title) like LOWER(:inventoryTitle)', {inventoryTitle: `%${searchAppUserDto.inventoryTitle}%`});
+  }
+
+
+
+//NON ELASTIC SEARCH
+
+
+if (searchAppUserDto.minCommission && searchAppUserDto.maxCommission) {
+    Result.andWhere('HotListing.saleCommission BETWEEN :minCommission AND :maxCommission', { minCommission: searchAppUserDto.minCommission, maxCommission: searchAppUserDto.maxCommission })
+}
+
+
+  if (searchAppUserDto.minCommission && searchAppUserDto.maxCommission) {
+    Result.andWhere('HotListing.updatedAt BETWEEN :postedStartDate AND :postedEndDate',{ postedStartDate: moment(searchAppUserDto.postedStartDate) , postedEndDate: moment(searchAppUserDto.postedEndDate) })
+}
+
+  if (searchAppUserDto.startDate && searchAppUserDto.endDate) {
+    Result.andWhere('user.createdAt BETWEEN :start AND :end', { start: searchAppUserDto.startDate, end: searchAppUserDto.endDate })
+}
+
+  if (searchAppUserDto.isVerified == 'true') {
+    Result.andWhere('user.isVerified = :check', { check:searchAppUserDto.isVerified })
+}
+
+  if (searchAppUserDto.isVerified == 'false') {
+    Result.andWhere('user.isVerified = :check', { check:searchAppUserDto.isVerified })
+}
+
+
+//NON ELASTIC SEARCH
+//Conditional search for Quick filters
+if (getProjectTypeAndSubTypeDto.projectTypeId) {
+    Result.andWhere('inventory.projectTypeId = :projectTypeId', { projectTypeId: getProjectTypeAndSubTypeDto.projectTypeId });
+  
+    if (getProjectTypeAndSubTypeDto.projectSubTypeId) {
+      Result.andWhere('inventory.projectSubTypeId = :projectSubTypeId', { projectSubTypeId: getProjectTypeAndSubTypeDto.projectSubTypeId });
+    }
+    if (getProjectTypeAndSubTypeDto.minlandSize && getProjectTypeAndSubTypeDto.maxlandSize  && getProjectTypeAndSubTypeDto.landAreaId) {
+      Result.andWhere('inventory.landAreaId = :landAreaId', { landAreaId: getProjectTypeAndSubTypeDto.landAreaId })
+      Result.andWhere('inventory.landSize BETWEEN :minlandSize AND :maxlandSize', { minlandSize: getProjectTypeAndSubTypeDto.minlandSize, maxlandSize: getProjectTypeAndSubTypeDto.maxlandSize })
+    }
+    if (getProjectTypeAndSubTypeDto.minimumPrice && getProjectTypeAndSubTypeDto.maximumPrice ) {
+      Result.andWhere('inventory.price BETWEEN :minPrice AND :maxPrice', { minPrice: getProjectTypeAndSubTypeDto.minimumPrice, maxPrice: getProjectTypeAndSubTypeDto.maximumPrice })
+    }
+    if (getProjectTypeAndSubTypeDto.bedRooms ) {
+      Result.andWhere('inventory.bedRooms = :bedRooms', { bedRooms :getProjectTypeAndSubTypeDto.bedRooms })
+    }
+    if (getProjectTypeAndSubTypeDto.washRooms) {
+      Result.andWhere('inventory.washRooms = :washRooms', { washRooms :getProjectTypeAndSubTypeDto.washRooms })
+    }
+  }
       
-      if (searchGetUserManagementListDto.fullName) {
-        AdminUserAuthResult.andWhere('LOWER(profile.fullName) like LOWER(:fullName)', {
-          fullName: `%${searchGetUserManagementListDto.fullName}%`,
-        });
-      }
 
-      if (searchGetUserManagementListDto.email) {
-        AdminUserAuthResult.andWhere('LOWER(AdminUserAuth.email) like LOWER(:email)', {
-          email: `%${searchGetUserManagementListDto.email}%`,
-        });
-      }
-      
-      if (searchGetUserManagementListDto.roleTitle) {
-        AdminUserAuthResult.andWhere('LOWER(adminRole.title) like LOWER(:roleTitle)', {
-          roleTitle: `%${searchGetUserManagementListDto.roleTitle}%`,
-        });
-      }
-
-      if (searchGetUserManagementListDto.phone) {
-        const phone = searchGetUserManagementListDto.phone.replace(/[^0-9\.]+/g, '');
-        AdminUserAuthResult.andWhere('LOWER(AdminUserAuth.phone) like LOWER(:phone)', {
-          phone: `%${phone}%`,
-        });
-      }
-
-      if (getProjectTypeAndSubTypeDto.minCommission && getProjectTypeAndSubTypeDto.maxCommission) {
-        Result.andWhere('HotListing.saleCommission BETWEEN :minCommission AND :maxCommission', { minCommission: getProjectTypeAndSubTypeDto.minCommission, maxCommission: getProjectTypeAndSubTypeDto.maxCommission })
-      }
-      if (getProjectTypeAndSubTypeDto.minCommission && getProjectTypeAndSubTypeDto.maxCommission) {
-        Result.andWhere('HotListing.updatedAt BETWEEN :postedStartDate AND :postedEndDate',{ postedStartDate: moment(getProjectTypeAndSubTypeDto.postedStartDate) , postedEndDate: moment(getProjectTypeAndSubTypeDto.postedEndDate) })
-      }
-      if (getProjectTypeAndSubTypeDto.inventoryTitle) {
-        Result.andWhere('LOWER(inventory.title) like LOWER(:inventoryTitle)', {inventoryTitle: `%${getProjectTypeAndSubTypeDto.inventoryTitle}%`});
-      }
-
-      if (searchAppUserDto.startDate && searchAppUserDto.endDate) {
-        Result.andWhere('user.createdAt BETWEEN :start AND :end', { start: searchAppUserDto.startDate, end: searchAppUserDto.endDate })
-      }
-
-      if (searchAppUserDto.isVerified == 'true') {
-        Result.andWhere('user.isVerified = :check', { check:searchAppUserDto.isVerified })
-      }
-      if (searchAppUserDto.isVerified == 'false') {
-        Result.andWhere('user.isVerified = :check', { check:searchAppUserDto.isVerified })
-
-      }
-
-      if (searchAppUserDto.email) {
-        console.log('in')
-        Result.andWhere('LOWER(user.email) like LOWER(:email)', {
-          email: `%${searchAppUserDto.email}%`,
-        });
-      }
-      if (searchAppUserDto.phone) {
-        const phone = searchAppUserDto.phone.replace(/[^0-9\.]+/g, '');
-        Result.andWhere('LOWER(user.phone) like LOWER(:phone)', {
-          phone: `%${phone}%`,
-        });
-      
 
       const totalItems = await AdminUserAuthResult.getCount();
     
