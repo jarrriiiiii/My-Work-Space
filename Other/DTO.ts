@@ -89,6 +89,12 @@ export class CreateNotificationDto {
     /////Placing another Sub-Dto as an array in the dto. 'CreateHotListingSubDto' is written below
     @ApiProperty({ type: [CreateHotListingSubDto] }) 
     createHotListingSubDto: CreateHotListingSubDto[];
+
+
+//To show enum dropdown in the swagger
+    @ApiProperty({type: 'string',enum: InventoryStatus, required:false})
+    @IsOptional()
+    inVentoryType: InventoryStatus;
 }
 
 
