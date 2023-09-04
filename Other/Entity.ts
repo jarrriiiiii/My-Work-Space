@@ -6,15 +6,8 @@ export class WebPaymentInfo {
   @Column()
   finalSaleStageId: number
 
-
   @Column()
   amount: number
-
-  @Column()
-  phoneNo: string
-
-  @Column()
-  code: string
 
   @Column()
   status: string //enum
@@ -22,9 +15,11 @@ export class WebPaymentInfo {
   @Column()
   url: string
 
-  @Column()
-  blinqInvoiceId: number
+  @Column({default : false})
+  isLocked : boolean 
 
+
+  /////////////Default Columns
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt : Date
