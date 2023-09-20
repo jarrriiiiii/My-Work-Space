@@ -255,7 +255,8 @@ return this.propertyWalletInventoryService.create(createPropertyWalletInventoryD
 
 
 
-------
+-------------------------------------------------------------------------------------------------------------------------------------
+    //Saving data according to the user's input and choice and selection, making object, using enum selection
       @Post('createPWIWebPayment')
   createPWPWebPayment(@Body() createPwiWebPaymentInfoDto: CreatePwiWebPaymentInfoDto) {
     return this.pwiWebPaymentInfoService.createPWIWebPayment(createPwiWebPaymentInfoDto);
@@ -342,3 +343,98 @@ return this.propertyWalletInventoryService.create(createPropertyWalletInventoryD
           await queryRunner.release();
         }
     }
+
+
+-------------------------------------------------------------------------------------------------------------------------------------
+//applying user check, saving data from multiple tables entities, loops, saving array in entities, entity, array query to insert array in table entity
+    //API is for user selection and preference buttons from the front end
+  async createUserPreference(createUserPreferenceDto: CreateUserPreferenceDto) {
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const UserPreferenceRepo = await queryRunner.manager.getRepository(UserPreference);
+      const PfPropertyTypeRepo = await queryRunner.manager.getRepository(PfPropertyType);
+      const PfLocationRepo = await queryRunner.manager.getRepository(PfLocation);
+
+      const userId = this.authService.getUserId();
+      const usercheck = await UserPreferenceRepo.findOne({ userId: userId });
+
+      if (usercheck) {
+        await PfPropertyTypeRepo.softDelete({ userPreferenceId: usercheck.id });
+        await PfLocationRepo.softDelete({ userPreferenceId: usercheck.id });
+
+
+        for (let i = 0;i < createUserPreferenceDto.CreateUserPreferenceSubcategoryDto.length;i++) {
+          createUserPreferenceDto.CreateUserPreferenceSubcategoryDto[i]['userPreferenceId'] = usercheck.id;
+        }
+
+
+        for (let i = 0;i < createUserPreferenceDto.CreateUserPreferenceLocationDto.length;i++) {
+          createUserPreferenceDto.CreateUserPreferenceLocationDto[i]['userPreferenceId'] = usercheck.id;
+        }
+
+        await PfPropertyTypeRepo.createQueryBuilder('pfp')
+          .insert()
+          .values(createUserPreferenceDto.CreateUserPreferenceSubcategoryDto)
+          .execute();
+
+        await PfLocationRepo.createQueryBuilder('pfl')
+          .insert()
+          .values(createUserPreferenceDto.CreateUserPreferenceLocationDto)
+          .execute();
+
+
+          const result = await UserPreferenceRepo.update({id: usercheck.id}, {
+            userId: userId,
+            isConfigured: createUserPreferenceDto.isConfigured ? createUserPreferenceDto.isConfigured : false,
+            isSell: createUserPreferenceDto.isSell ? createUserPreferenceDto.isSell : false,
+            isRent: createUserPreferenceDto.isRent ? createUserPreferenceDto.isRent : false,
+            isPrice: createUserPreferenceDto.isPrice ? createUserPreferenceDto.isPrice : false,
+            isLocations: createUserPreferenceDto.isLocations ? createUserPreferenceDto.isLocations : false,
+            isCommission: createUserPreferenceDto.isCommission ? createUserPreferenceDto.isCommission : false,
+          });
+
+
+      } 
+            
+      else {
+        const result = await UserPreferenceRepo.save({
+          userId: userId,
+          isConfigured: createUserPreferenceDto.isConfigured ? createUserPreferenceDto.isConfigured : false,
+          isSell: createUserPreferenceDto.isSell ? createUserPreferenceDto.isSell : false,
+          isRent: createUserPreferenceDto.isRent ? createUserPreferenceDto.isRent : false,
+          isPrice: createUserPreferenceDto.isPrice ? createUserPreferenceDto.isPrice : false,
+          isLocations: createUserPreferenceDto.isLocations ? createUserPreferenceDto.isLocations : false,
+          isCommission: createUserPreferenceDto.isCommission ? createUserPreferenceDto.isCommission : false,
+        });
+
+        for (let i = 0; i < createUserPreferenceDto.CreateUserPreferenceSubcategoryDto.length; i++) {
+          createUserPreferenceDto.CreateUserPreferenceSubcategoryDto[i]['userPreferenceId'] = result.id;
+        }
+
+        for (let i = 0;i < createUserPreferenceDto.CreateUserPreferenceLocationDto.length;i++) {
+          createUserPreferenceDto.CreateUserPreferenceLocationDto[i]['userPreferenceId'] = result.id;
+        }
+
+        await PfPropertyTypeRepo.createQueryBuilder('pfp')
+          .insert()
+          .values(createUserPreferenceDto.CreateUserPreferenceSubcategoryDto)
+          .execute();
+
+        await PfLocationRepo.createQueryBuilder('pfl')
+          .insert()
+          .values(createUserPreferenceDto.CreateUserPreferenceLocationDto)
+          .execute();
+      }
+
+      await queryRunner.commitTransaction();
+      return { message: commonMessage.create, data: {} };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+}
