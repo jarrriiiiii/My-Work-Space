@@ -35,7 +35,9 @@ export class WebPaymentInfo {
   
   @Column({ nullable: true })
   updatedBy: number;
-  
+
+
+  //Discouraged highly
   @Column({nullable : true,default : null})
   deletedBy: number;
 }
