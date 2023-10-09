@@ -449,3 +449,126 @@ return this.propertyWalletInventoryService.create(createPropertyWalletInventoryD
     }
   }
 }
+
+-------------------------------------------------------------------------------------------------------------------------------------
+//saving data to multiple tables entities, Saving data through object
+
+  @loungeUser()
+  @Post('addNewWithdrawRequest')
+  addNewWithdrawRequest(
+    @Body()
+    loungeOwnerWalletWithDrawRequestDto: LoungeOwnerWalletWithDrawRequestDto,
+  ) {
+    return this.loungeOwnerWalletService.addNewWithdrawRequest(
+      loungeOwnerWalletWithDrawRequestDto,
+    );
+  }
+
+
+
+
+
+
+  async addNewWithdrawRequest(
+    loungeOwnerWalletWithDrawRequestDto: LoungeOwnerWalletWithDrawRequestDto,
+  ): Promise<ResponseDto> {
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const loungeOwnerDetail = await this.authService.getLoungeOwnerDetail();
+
+      const loungeOwnerWalletRepo = await queryRunner.manager.getRepository(
+        LoungeOwnerWallet,
+      );
+      const loungeOwnerWalletWithDrawRequestRepo =
+        await queryRunner.manager.getRepository(
+          LoungeOwnerWalletWithDrawRequest,
+        );
+      const loungeOwnerWalletReserveAmountRepo =
+        await queryRunner.manager.getRepository(LoungeOwnerWalletReserveAmount);
+
+      const query = await loungeOwnerWalletWithDrawRequestRepo
+        .createQueryBuilder('loungeOwnerWalletWithDrawRequest')
+        .where(
+          'loungeOwnerWalletWithDrawRequest.loungeOwnerId = :loungeOwnerId',
+          { loungeOwnerId: loungeOwnerDetail.id },
+        )
+        .andWhere('loungeOwnerWalletWithDrawRequest.status = :status', {
+          status: withDrawRequestStatus.Pending,
+        })
+        .orderBy('loungeOwnerWalletWithDrawRequest.id', 'DESC')
+        .getOne();
+
+      console.log('query', query);
+
+      if (query) {
+        console.log('query inside');
+        const start = moment();
+        const endDate = moment(query.createdAt);
+        const duration = moment.duration(start.diff(endDate));
+        const hours = duration.asHours();
+
+        if (!(hours >= 24)) {
+          throw new NotFoundException(
+            `Your request has already been submitted. Please wait for 24 hours.`,
+          );
+        }
+      }
+
+      const cWallet = await loungeOwnerWalletRepo
+        .createQueryBuilder('loungeOwnerWallet')
+        .where('loungeOwnerWallet.loungeOwnerId = :loungeOwnerId', {
+          loungeOwnerId: loungeOwnerDetail.id,
+        })
+        .getOne();
+
+      if (
+        parseInt(loungeOwnerWalletWithDrawRequestDto.amount.toString()) >
+        parseInt(cWallet.amount.toString())
+      ) {
+        throw new NotFoundException(
+          `The amount you are trying to withdraw exceeds the balance in your wallet.`,
+        );
+      }
+
+      const newwithDReq = await loungeOwnerWalletWithDrawRequestRepo.save({
+        loungeOwnerId: loungeOwnerDetail.id,
+        remarks: loungeOwnerWalletWithDrawRequestDto.remarks,
+        amount: parseInt(loungeOwnerWalletWithDrawRequestDto.amount.toString()),
+        bankName: loungeOwnerWalletWithDrawRequestDto.bankName,
+        accountNo: loungeOwnerWalletWithDrawRequestDto.accountNo,
+        accountTitleName: loungeOwnerWalletWithDrawRequestDto.accountTitleName,
+        cnic: loungeOwnerWalletWithDrawRequestDto.cnic,
+        email: loungeOwnerWalletWithDrawRequestDto.email,
+        phoneNo: loungeOwnerWalletWithDrawRequestDto.phone,
+        createdBy: loungeOwnerDetail.id,
+      });
+
+      const reserveReq = await loungeOwnerWalletReserveAmountRepo.save({
+        loungeOwnerId: loungeOwnerDetail.id,
+        loungeOwnerWalletWithDrawRequestId: newwithDReq.id,
+        amount: parseInt(loungeOwnerWalletWithDrawRequestDto.amount.toString()),
+        createdBy: loungeOwnerDetail.id,
+      });
+
+      const updateAmount =
+        parseInt(cWallet.amount.toString()) -
+        parseInt(loungeOwnerWalletWithDrawRequestDto.amount.toString());
+      await loungeOwnerWalletRepo.update(
+        { id: cWallet.id },
+        { amount: updateAmount },
+      );
+
+      await queryRunner.commitTransaction();
+      return {
+        message: commonMessage.withDrawRequestSuccessfullyCreated,
+        data: null,
+      };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
