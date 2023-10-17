@@ -1,3 +1,39 @@
+//Saving, storing, save, store, post, object, data in object, through DTO Data in the Table database db entity, startTransaction, transaction
+
+@forAllUser()
+  @UseInterceptors(TransformInterceptor)
+  @Get('attendance/check')
+  attendanceCheck(@Query() attendanceCheckDto: AttendanceCheckDto) {
+    return this.loungeService.attendanceCheck(attendanceCheckDto);
+  }
+
+
+  async attendanceCheck(
+    attendanceCheckDto: AttendanceCheckDto,
+  ): Promise<ResponseDto> {
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const loungeAttendanceRepo =
+        queryRunner.manager.getRepository(LoungeAttendance);
+      const user = await this.authService.getProDetail();
+
+      const result = await loungeAttendanceRepo.save({
+        loungeId: attendanceCheckDto.loungeId,
+        sType: attendanceCheckDto.sType,
+        userId: user.id,
+      });
+      await queryRunner.commitTransaction();
+      return { message: commonMessage.create, data: result };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //Save, post, store, data via through DTO in db table database, save by User ID, save by createdByAdmin, by using auth connection
   @Post('createProductUtil')
