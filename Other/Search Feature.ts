@@ -14,8 +14,26 @@ export class SearchGetUserManagementListDto {
     @ApiProperty({required : false})
     @IsOptional()
     phone : string
+
+//For Adding SORT BY Button
+//Also add the ENUM for this
+    @ApiProperty({ type: 'string', enum: SortByOrder, required: false })
+    @IsOptional()
+    sortByOrder: SortByOrder;
+    
 }
 
+
+
+
+
+
+
+
+export enum SortByOrder {
+  Ascending = 'Ascending',
+  Descending = 'Descending',
+}
 
 ----------------------------------------------------------------------------
   @Get('getUserManagementList')
@@ -119,8 +137,22 @@ if (getProjectTypeAndSubTypeDto.projectTypeId) {
   }
       
 
-
-      const totalItems = await AdminUserAuthResult.getCount();
+//For Sort By: (ASC, DESC) Button
+//DTO Entry is saved above in the DTO section at top
+        
+        if (searchAssignLoProjectForAppDto.sortByOrder === SortByOrder.Ascending) {
+            loProjectResult.orderBy('loProject.id', 'ASC')
+        }
+        
+        if (searchAssignLoProjectForAppDto.sortByOrder === SortByOrder.Descending) {
+            loProjectResult.orderBy('loProject.id', 'DESC')
+        }
+      
+        
+        
+        
+        
+        const totalItems = await AdminUserAuthResult.getCount();
     
     const pg = await paginate<AdminUserAuth>(AdminUserAuthResult, {
       limit,
