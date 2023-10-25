@@ -150,7 +150,7 @@ if (getProjectTypeAndSubTypeDto.projectTypeId) {
       
 
 
-              if (
+      if (
         searchAssignLoProjectForAppDto.sortByOrder && searchAssignLoProjectForAppDto.sortByOrder === SortByOrder.Ascending) {
         loProjectResult.orderBy('assignInventoryForLounge.id', 'ASC');
       } else {
