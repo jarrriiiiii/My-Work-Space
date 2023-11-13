@@ -71,96 +71,76 @@
     
 
 -------------------------------------------------------------------------------------------------------------------------------------
-//Saving in the array using loops
-  async createUserPreference(createUserPreferenceDto: CreateUserPreferenceDto) {
-    const queryRunner = this.connection.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      const UserPreferenceRepo = await queryRunner.manager.getRepository(UserPreference);
-      const PfPropertyTypeRepo = await queryRunner.manager.getRepository(PfPropertyType);
-      const PfLocationRepo = await queryRunner.manager.getRepository(PfLocation);
-
-      const userId = this.authService.getUserId();
-      const usercheck = await UserPreferenceRepo.findOne({ userId: userId });
-
-      if (usercheck) {
-        await PfPropertyTypeRepo.softDelete({ userPreferenceId: usercheck.id });
-        await PfLocationRepo.softDelete({ userPreferenceId: usercheck.id });
-
-
-        for (let i = 0;i < createUserPreferenceDto.CreateUserPreferenceSubcategoryDto.length;i++) {
-          createUserPreferenceDto.CreateUserPreferenceSubcategoryDto[i]['userPreferenceId'] = usercheck.id;
-        }
-
-
-        for (let i = 0;i < createUserPreferenceDto.CreateUserPreferenceLocationDto.length;i++) {
-          createUserPreferenceDto.CreateUserPreferenceLocationDto[i]['userPreferenceId'] = usercheck.id;
-        }
-
-        await PfPropertyTypeRepo.createQueryBuilder('pfp')
-          .insert()
-          .values(createUserPreferenceDto.CreateUserPreferenceSubcategoryDto)
-          .execute();
-
-        await PfLocationRepo.createQueryBuilder('pfl')
-          .insert()
-          .values(createUserPreferenceDto.CreateUserPreferenceLocationDto)
-          .execute();
-
-
-          const result = await UserPreferenceRepo.update({id: usercheck.id}, {
-            userId: userId,
-            isConfigured: createUserPreferenceDto.isConfigured ? createUserPreferenceDto.isConfigured : false,
-            isSell: createUserPreferenceDto.isSell ? createUserPreferenceDto.isSell : false,
-            isRent: createUserPreferenceDto.isRent ? createUserPreferenceDto.isRent : false,
-            isPrice: createUserPreferenceDto.isPrice ? createUserPreferenceDto.isPrice : false,
-            isLocations: createUserPreferenceDto.isLocations ? createUserPreferenceDto.isLocations : false,
-            isCommission: createUserPreferenceDto.isCommission ? createUserPreferenceDto.isCommission : false,
-          });
-
-
-      } 
-            
-      else {
-        const result = await UserPreferenceRepo.save({
-          userId: userId,
-          isConfigured: createUserPreferenceDto.isConfigured ? createUserPreferenceDto.isConfigured : false,
-          isSell: createUserPreferenceDto.isSell ? createUserPreferenceDto.isSell : false,
-          isRent: createUserPreferenceDto.isRent ? createUserPreferenceDto.isRent : false,
-          isPrice: createUserPreferenceDto.isPrice ? createUserPreferenceDto.isPrice : false,
-          isLocations: createUserPreferenceDto.isLocations ? createUserPreferenceDto.isLocations : false,
-          isCommission: createUserPreferenceDto.isCommission ? createUserPreferenceDto.isCommission : false,
-        });
-
-        for (let i = 0; i < createUserPreferenceDto.CreateUserPreferenceSubcategoryDto.length; i++) {
-          createUserPreferenceDto.CreateUserPreferenceSubcategoryDto[i]['userPreferenceId'] = result.id;
-        }
-
-        for (let i = 0;i < createUserPreferenceDto.CreateUserPreferenceLocationDto.length;i++) {
-          createUserPreferenceDto.CreateUserPreferenceLocationDto[i]['userPreferenceId'] = result.id;
-        }
-
-        await PfPropertyTypeRepo.createQueryBuilder('pfp')
-          .insert()
-          .values(createUserPreferenceDto.CreateUserPreferenceSubcategoryDto)
-          .execute();
-
-        await PfLocationRepo.createQueryBuilder('pfl')
-          .insert()
-          .values(createUserPreferenceDto.CreateUserPreferenceLocationDto)
-          .execute();
-      }
-
-      await queryRunner.commitTransaction();
-      return { message: commonMessage.create, data: {} };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(error);
-    } finally {
-      await queryRunner.release();
-    }
+//Saving arrays to the DB via loops and insert query
+//Saving ProjectIds in the array and saving that array to the Database
+  
+      
+  @noModulePermission()
+  @UseInterceptors(TransformInterceptor)
+  @Post('/proCooAssign/Project')
+  proCooAssignProject(@Body() createProCooAssignProjectDto: CreateProCooAssignProjectDto) {
+    return this.proCooAssignProjectService.proCooAssignProject(createProCooAssignProjectDto)
   }
+
+
+
+
+
+
+async proCooAssignProject(createProCooAssignProjectDto: CreateProCooAssignProjectDto): Promise<ResponseDto> {
+  const queryRunner = this.connection.createQueryRunner();
+  await queryRunner.connect();
+  await queryRunner.startTransaction();
+  try {
+    const projectCoordinatorAssignProjectRepo = await queryRunner.manager.getRepository(ProjectCoordinatorAssignProject)
+
+
+    const check = await projectCoordinatorAssignProjectRepo.createQueryBuilder('projectCoordinatorAssignProject')
+    .where('projectCoordinatorAssignProject.propertyWalletProjectId IN(:...propertyWalletProjectId)', {propertyWalletProjectId: createProCooAssignProjectDto.propertyWalletProjectId})
+    .andWhere('projectCoordinatorAssignProject.projectCoordinatorUserId = :projectCoordinatorUserId ', {projectCoordinatorUserId: createProCooAssignProjectDto.projectCoordinatorUserId})
+    .getOne();
+
+    if (check){
+    throw new BadRequestException(`Project already assigned!`);
+    }
+
+    const proCooAssigned = [];
+
+    for (let i = 0; i < createProCooAssignProjectDto.propertyWalletProjectId.length; i++) {
+      proCooAssigned.push({
+        projectCoordinatorUserId: createProCooAssignProjectDto.projectCoordinatorUserId,
+        propertyWalletProjectId: createProCooAssignProjectDto.propertyWalletProjectId[i]
+      });
+
+    }
+
+    const assignProCoo = await projectCoordinatorAssignProjectRepo.createQueryBuilder()
+    .insert()
+    .values(proCooAssigned)
+    .execute();
+
+    await queryRunner.commitTransaction();
+    return { message: commonMessage.create, data: null };
+  } catch (error) {
+    await queryRunner.rollbackTransaction();
+    throw new InternalServerErrorException(error);
+  } finally {
+    await queryRunner.release();
+  }
+}
+
+
+
+
+
+export class CreateProCooAssignProjectDto {
+  @ApiProperty({required: true})
+  @IsNotEmpty()
+  projectCoordinatorUserId: number;
+
+  @ApiProperty({type: [Number],required: true})
+  @IsNotEmpty()
+  propertyWalletProjectId: number[];
 }
 
 
