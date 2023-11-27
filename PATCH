@@ -26,7 +26,7 @@
     } catch (err) {
       await runner.rollbackTransaction();
       throw new InternalServerErrorException(err);
-    }
+    } //add finally release
   }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -73,8 +73,102 @@ async invoiceIsPaidCallBack(InvoiceNumber : string): Promise<ResponseDto> {
     } catch (err) {
       await runner.rollbackTransaction();
       throw new InternalServerErrorException(err);
-    }
+    } //add finally release
   }
 
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Patch API, Ssve by array and map
+
+export class PaymobInvoiceDto {
+  @IsArray()
+  @IsString({ each: true })
+  item: string[];
+
+  @ApiProperty({ required: false })
+  @IsArray()
+  photo: string[];
+
+  @ApiProperty({ required: false })
+  @IsArray()
+  video: string[];
+
+  
+}
+
+
+@Patch('/editDigitalCatalogue/:catalogueId')
+editDigitalCatalogue(@Param('catalogueId') catalogueId: number, @Body() updateCatalogueDto: UpdateCatalogueDto) {
+  return this.catalogueService.editDigitalCatalogue(catalogueId,updateCatalogueDto);
+}
+
+
+async editDigitalCatalogue(catalogueId: number, updateCatalogueDto: UpdateCatalogueDto): Promise<ResponseDto> {
+  const runner = this.connection.createQueryRunner();
+  await runner.connect();
+  await runner.startTransaction();
+  try {
+    const agencyDigitalCatalogueRepo = runner.manager.getRepository(AgencyDigitalCatalogue);
+    const cataloguePhotoRepo = runner.manager.getRepository(CataloguePhoto);
+    const catalogueVideoRepo = runner.manager.getRepository(CatalogueVideo);
+
+    const findCheck = await agencyDigitalCatalogueRepo.findOne({id: catalogueId});
+
+    if (findCheck.id) {
+
+      if (updateCatalogueDto.photo && updateCatalogueDto.photo.length > 0) {
+        await agencyDigitalCatalogueRepo.delete({ id: catalogueId });
+
+        const photoData = [];
+        updateCatalogueDto.photo.map((x) => {
+          photoData.push({
+            catalogueId: catalogueId,
+            url: x,
+          });
+        });
+        if (photoData.length > 0) {
+          await cataloguePhotoRepo
+            .createQueryBuilder()
+            .insert()
+            .values(photoData)
+            .execute();
+        }
+      }
+
+      if (updateCatalogueDto.video && updateCatalogueDto.video.length > 0) {
+        await agencyDigitalCatalogueRepo.delete({ id: catalogueId });
+
+        const videoData = [];
+        updateCatalogueDto.video.map((x) => {
+          videoData.push({
+            catalogueId: catalogueId,
+            url: x,
+          });
+        });
+
+        if (videoData.length > 0) {
+          await catalogueVideoRepo
+            .createQueryBuilder()
+            .insert()
+            .values(videoData)
+            .execute();
+        }
+      }
+    } else {
+      throw new BadRequestException(commonMessage.idNotFound);
+    }
+    await runner.commitTransaction();
+    const result = await agencyDigitalCatalogueRepo.findOne({
+      id: catalogueId,
+    });
+
+    return { message: commonMessage.update, data: result };
+  } catch (err) {
+    await runner.rollbackTransaction();
+    throw new InternalServerErrorException(err);
+  } finally {
+    await runner.release();
+  }
+}
 
