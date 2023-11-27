@@ -33,44 +33,6 @@
     }
   }
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//Saving by complete DTO
-  @Post('createProductUtil')
-  @hasModulePermission(moduleType.propertiesDetails,moduleType.singleProperty)
-  @UseInterceptors(TransformInterceptor)
-  createProductUtil(@Body() createPropertyWalletProductUtilDto: CreatePropertyWalletProductUtilDto) {
-    return this.propertyWalletProductUtilsService.createProductUtil(createPropertyWalletProductUtilDto);
-  }
-    
-    async createProductUtil(createPropertyWalletProductUtilDto: CreatePropertyWalletProductUtilDto): Promise<ResponseDto> {
-    const queryRunner = this.connection.createQueryRunner();
-    await queryRunner.connect()
-    await queryRunner.startTransaction()
-  
-    try {
-    const repo = queryRunner.manager.getRepository(PropertyWalletProductMultiUtilities);
-    const userId = await this.adminAuth.getAdminUserId()
-    const check = await repo.findOne(createPropertyWalletProductUtilDto)
-     
-      if(!check){
-     createPropertyWalletProductUtilDto.createdByAdmin = userId
-      const result = await repo.save(createPropertyWalletProductUtilDto)
-      await queryRunner.commitTransaction()
-      return { message: commonMessage.create, data: {result} };
-      }
-
-      throw(commonMessage.duplicateData)
-    } 
-    catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(error);
-    }
-     finally {
-      await queryRunner.release();
-    }
-    
-    
-
--------------------------------------------------------------------------------------------------------------------------------------
 //Saving arrays to the DB via loops and insert query
 //Saving ProjectIds in the array and saving that array to the Database
   
@@ -129,10 +91,6 @@ async proCooAssignProject(createProCooAssignProjectDto: CreateProCooAssignProjec
   }
 }
 
-
-
-
-
 export class CreateProCooAssignProjectDto {
   @ApiProperty({required: true})
   @IsNotEmpty()
@@ -142,5 +100,113 @@ export class CreateProCooAssignProjectDto {
   @IsNotEmpty()
   propertyWalletProjectId: number[];
 }
+
+----------------------------------------------------------------------------------------------------------------
+//Saving arrays to the DB via loops and insert query using MAP
+//Saving ProjectIds in the array and saving that array to the Database
+  //MAP usage
+
+    @Patch('/editDigitalCatalogue/:catalogueId')
+  editDigitalCatalogue(
+    @Param('catalogueId') catalogueId: number,
+    @Body() updateCatalogueDto: UpdateCatalogueDto,
+  ) {
+    return this.catalogueService.editDigitalCatalogue(
+      catalogueId,
+      updateCatalogueDto,
+    );
+  }
+
+
+
+
+
+  async editDigitalCatalogue(
+    catalogueId: number,
+    updateCatalogueDto: UpdateCatalogueDto,
+  ): Promise<ResponseDto> {
+    const runner = this.connection.createQueryRunner();
+    await runner.connect();
+    await runner.startTransaction();
+    try {
+      const agencyDigitalCatalogueRepo = runner.manager.getRepository(
+        AgencyDigitalCatalogue,
+      );
+      const cataloguePhotoRepo = runner.manager.getRepository(CataloguePhoto);
+      const catalogueVideoRepo = runner.manager.getRepository(CatalogueVideo);
+
+      const findCheck = await agencyDigitalCatalogueRepo.findOne({
+        id: catalogueId,
+      });
+
+      if (findCheck.id) {
+        if (updateCatalogueDto.photo && updateCatalogueDto.photo.length > 0) {
+          await agencyDigitalCatalogueRepo.delete({ id: catalogueId });
+
+          const photoData = [];
+          updateCatalogueDto.photo.map((x) => {
+            photoData.push({
+              catalogueId: catalogueId,
+              url: x,
+            });
+          });
+          if (photoData.length > 0) {
+            await cataloguePhotoRepo
+              .createQueryBuilder()
+              .insert()
+              .values(photoData)
+              .execute();
+          }
+        }
+
+        if (updateCatalogueDto.video && updateCatalogueDto.video.length > 0) {
+          await agencyDigitalCatalogueRepo.delete({ id: catalogueId });
+
+          const videoData = [];
+          updateCatalogueDto.video.map((x) => {
+            videoData.push({
+              catalogueId: catalogueId,
+              url: x,
+            });
+          });
+
+          if (videoData.length > 0) {
+            await catalogueVideoRepo
+              .createQueryBuilder()
+              .insert()
+              .values(videoData)
+              .execute();
+          }
+        }
+      } else {
+        throw new BadRequestException(commonMessage.idNotFound);
+      }
+      await runner.commitTransaction();
+      const result = await agencyDigitalCatalogueRepo.findOne({
+        id: catalogueId,
+      });
+
+      return { message: commonMessage.update, data: result };
+    } catch (err) {
+      await runner.rollbackTransaction();
+      throw new InternalServerErrorException(err);
+    } finally {
+      await runner.release();
+    }
+  }
+
+
+
+export class CreateCatalogueDto {
+  @ApiProperty({ required: false })
+  @IsArray()
+  photo: string[];
+
+  @ApiProperty({ required: false })
+  @IsArray()
+  video: string[];
+}
+
+
 
 
