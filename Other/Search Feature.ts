@@ -25,14 +25,10 @@ export class SearchGetUserManagementListDto {
 
 
 
-
-
-
-
-
 export enum SortByOrder {
   Ascending = 'Ascending',
   Descending = 'Descending',
+  SortByLastMonth = 'SortByLastMonth',
 }
 
 ----------------------------------------------------------------------------
@@ -52,11 +48,6 @@ export enum SortByOrder {
       const AdminUserAuthResult = await AdminUserAuthRepo
       .createQueryBuilder('AdminUserAuth')
       .leftJoin('assignAppModule.appModule','appModule')
-
-
-
-
-
 
 
 
@@ -90,11 +81,9 @@ if (searchAppUserDto.phone) {
 
 //NON ELASTIC SEARCH
 
-
 if (searchAppUserDto.minCommission && searchAppUserDto.maxCommission) {
     Result.andWhere('HotListing.saleCommission BETWEEN :minCommission AND :maxCommission', { minCommission: searchAppUserDto.minCommission, maxCommission: searchAppUserDto.maxCommission })
 }
-
 
   if (searchAppUserDto.minCommission && searchAppUserDto.maxCommission) {
     Result.andWhere('HotListing.updatedAt BETWEEN :postedStartDate AND :postedEndDate',{ postedStartDate: moment(searchAppUserDto.postedStartDate) , postedEndDate: moment(searchAppUserDto.postedEndDate) })
@@ -113,6 +102,8 @@ if (searchAppUserDto.minCommission && searchAppUserDto.maxCommission) {
 }
 
 
+
+        
 //NON ELASTIC SEARCH
 //Conditional search for Quick filters
 if (getProjectTypeAndSubTypeDto.projectTypeId) {
@@ -137,28 +128,28 @@ if (getProjectTypeAndSubTypeDto.projectTypeId) {
   }
       
 
-//For Sort By: (ASC, DESC) Button
-//DTO Entry is saved above in the DTO section at top
-        
-        if (searchAssignLoProjectForAppDto.sortByOrder === SortByOrder.Ascending) {
-            loProjectResult.orderBy('loProject.id', 'ASC')
-        }
-        
-        if (searchAssignLoProjectForAppDto.sortByOrder === SortByOrder.Descending) {
-            loProjectResult.orderBy('loProject.id', 'DESC')
-        }
-      
 
-
-      if (
-        searchAssignLoProjectForAppDto.sortByOrder && searchAssignLoProjectForAppDto.sortByOrder === SortByOrder.Ascending) {
+        
+//For Sort By: (ASC, DESC) Button 
+        //DTO Entry is saved above in the DTO section
+        
+if (searchAssignLoProjectForAppDto.sortByOrder && searchAssignLoProjectForAppDto.sortByOrder === SortByOrder.Ascending) {
         loProjectResult.orderBy('assignInventoryForLounge.id', 'ASC');
       } else {
         loProjectResult.orderBy('assignInventoryForLounge.id', 'DESC');
       }
+        
+//For Sort By: Last Month only
 
-        
-        
+      if (getAllReviewForAgencyFilterDto.sortByOrder && getAllReviewForAgencyFilterDto.sortByOrder === SortByOrder.SortByLastMonth) {
+       
+        const lastMonthStartDate = new Date();
+        lastMonthStartDate.setMonth(lastMonthStartDate.getMonth() - 1);
+        const lastMonthEndDate = new Date();
+
+        agencyReviewResult.andWhere('agencyReview.createdAt BETWEEN :startDate AND :endDate', {startDate: lastMonthStartDate.toISOString(), endDate: lastMonthEndDate.toISOString()})
+        agencyReviewResult.orderBy('agencyReview.createdAt', 'DESC');
+      }
         
         const totalItems = await AdminUserAuthResult.getCount();
     
