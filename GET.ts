@@ -44,6 +44,7 @@
     @Query('page', ParseIntPipe) page: number,
     @Query('limit', ParseIntPipe) limit: number,
   ) {
+     limit = limit > 100 ? 100 : limit;
     return this.proCooAuthService.getAllAttendant(page, limit);
   }
 
