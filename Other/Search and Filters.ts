@@ -217,12 +217,14 @@ if (getProjectTypeAndSubTypeDto.washRooms) {
       Result.andWhere('inventory.landAreaId = :landAreaId', { landAreaId: getProjectTypeAndSubTypeDto.landAreaId })
       Result.andWhere('inventory.landSize BETWEEN :minlandSize AND :maxlandSize', { minlandSize: getProjectTypeAndSubTypeDto.minlandSize, maxlandSize: getProjectTypeAndSubTypeDto.maxlandSize })
     }
+
+
+
+        
     if (getProjectTypeAndSubTypeDto.minimumPrice && getProjectTypeAndSubTypeDto.maximumPrice ) {
       Result.andWhere('inventory.price BETWEEN :minPrice AND :maxPrice', { minPrice: getProjectTypeAndSubTypeDto.minimumPrice, maxPrice: getProjectTypeAndSubTypeDto.maximumPrice })
     }
 
-    
-  }
       
 
 ///////////////For Sort By: (ASC, DESC) Button 
