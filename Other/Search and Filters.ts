@@ -171,6 +171,17 @@ if (searchAppUserDto.phone) {
   }
 
 
+//Multi field search in ONE search
+if (customerListingFiltersDto.location) {
+        customerListingResult.where(
+          'customerListing.refCode ILIKE :FrefCode AND (profile.fullName ILIKE :search OR (PwSubPackage.title ILIKE :search OR (pwPackage.title ILIKE :search )))',
+          {
+            search: `%${getSearchDto.search}%`,
+            FrefCode: freeLancerResult.refCode,
+          },
+        );
+      } 
+
 //////////////////////////NON ELASTIC SEARCH/FILTERS
 
   if (searchAppUserDto.isVerified == 'true') {
