@@ -93,6 +93,7 @@
 
 @Get('getAllPWProduct/:id')
 @hasModulePermission(moduleType.inventories)
+@UseInterceptors(TransformInterceptor)
 getAllPWProduct(@Param('id') id: number) {
   return this.propertyWalletProductService.getAllPWProduct(+id);
 }
