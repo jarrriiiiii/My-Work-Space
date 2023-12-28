@@ -183,7 +183,8 @@ if (searchAppUserDto.phone) {
 
 if (getProjectTypeAndSubTypeDto.projectTypeId) {
     Result.andWhere('inventory.projectTypeId = :projectTypeId', { projectTypeId: getProjectTypeAndSubTypeDto.projectTypeId });
-  
+}
+        
 if (getProjectTypeAndSubTypeDto.projectSubTypeId) {
       Result.andWhere('inventory.projectSubTypeId = :projectSubTypeId', { projectSubTypeId: getProjectTypeAndSubTypeDto.projectSubTypeId });
 }
