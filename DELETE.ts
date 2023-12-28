@@ -1,7 +1,8 @@
 //Soft Delete
 
-@noModulePermission()
-  @Delete('deleteListing/:id')
+@noModulePermission
+@UseInterceptors(TransformInterceptor)
+@Delete('deleteListing/:id')
   deleteListing(@Param('id') id: number){
   return this.agencyService.deleteListing(+id);
   }
