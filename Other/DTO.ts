@@ -42,6 +42,8 @@ export class CreateNotificationDto {
   @ApiProperty({ type: "string", format: "binary", required: true })
   freeTool: Express.Multer.File;
 
+  
+  //Enum METHOD 1
   @IsString()
   @IsNotEmpty()
   @ApiProperty()
@@ -54,6 +56,20 @@ export class CreateNotificationDto {
   ])
   status: string;
 
+
+  //Enum METHOD II
+  @ApiProperty({ enum: ListingType })
+  @IsNotEmpty()
+  listingType: ListingType;
+
+
+  //Enum Method III - To show enum dropdown in the swagger
+  @ApiProperty({ type: "string", enum: InventoryStatus, required: false })
+  @IsOptional()
+  inVentoryType: InventoryStatus;
+
+
+  
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
@@ -95,10 +111,7 @@ export class CreateNotificationDto {
   @ApiProperty({ type: [CreateHotListingSubDto] })
   createHotListingSubDto: CreateHotListingSubDto[];
 
-  //To show enum dropdown in the swagger
-  @ApiProperty({ type: "string", enum: InventoryStatus, required: false })
-  @IsOptional()
-  inVentoryType: InventoryStatus;
+
 }
 
 export class CreateHotListingSubDto {
