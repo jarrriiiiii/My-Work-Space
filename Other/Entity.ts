@@ -18,7 +18,21 @@ export class WebPaymentInfo {
   @Column({default : false})
   isLocked : boolean 
 
+//For Enum
+    @Column({
+    type: 'enum',
+    enum: InventoryType,
+  })
+  inventoryType: InventoryType;
 
+
+    @Column({
+    type: 'enum',
+    enum: ElectricityBackup,
+    default: ElectricityBackup.None,
+  })
+  electricityBackup: ElectricityBackup;
+  
   /////////////Default Columns
 
   @CreateDateColumn({ type: 'timestamp' })
