@@ -1,4 +1,5 @@
   @noModulePermission()
+  @UseInterceptors(TransformInterceptor)
   @Patch('/updateManualNotification/:id')
   updateManualNotification(@Param('id') id : number, @Body() updateManualNotificationDto : UpdateManualNotificationDto){
     return this.manualNotificationService.updateManualNotification(id, updateManualNotificationDto)
