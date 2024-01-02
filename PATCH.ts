@@ -54,33 +54,53 @@ async invoiceIsPaidCallBack(InvoiceNumber : string): Promise<ResponseDto> {
     }
 ---------------------------------------------------------------------------------------------------
 //Update by DTO
-  async updateProjectStep1(
-    propertyWalletProjectId: number,
-    updatePropertyWalletProjectStep1Dto: UpdatePropertyWalletProjectStep1Dto,
-  ): Promise<ResponseDto> {
-    const runner = this.connection.createQueryRunner();
-    await runner.connect();
-    await runner.startTransaction();
+
+  @forAllUser()
+  @Patch('/updateListing/IsSoldCheck')
+  updateListingIsSoldCheck(@Body() updateIsSoldCheckDto: UpdateIsSoldCheckDto) {
+    return this.agencyService.updateListingIsSoldCheck(updateIsSoldCheckDto);
+  }
+
+ async updateListingIsSoldCheck(updateIsSoldCheckDto: UpdateIsSoldCheckDto) {
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     try {
-      const projectRepo = runner.manager.getRepository(PropertyWalletProject);
-      const projectId = propertyWalletProjectId;
-      const findCkeck = await projectRepo.find({ id: projectId });
-      if (findCkeck[0]) {
-        await projectRepo.update(
-          { id: projectId },
-          updatePropertyWalletProjectStep1Dto,
-        );
-        await runner.commitTransaction();
+      let data;
+      if (updateIsSoldCheckDto.listingName === listingEnums.listing) {
+        const Listingrepo = queryRunner.manager.getRepository(Listing);
+
+        data = await Listingrepo.update(updateIsSoldCheckDto.id, {
+          isSold: true,
+        });
+      } else if (updateIsSoldCheckDto.listingName === listingEnums.hotListing) {
+        const HotListingRepo = queryRunner.manager.getRepository(HotListing);
+
+        data = await HotListingRepo.update(updateIsSoldCheckDto.id, {
+          isSold: true,
+        });
       }
-      return { message: commonMessage.update };
-    } catch (err) {
-      await runner.rollbackTransaction();
-      throw new InternalServerErrorException(err);
-    } //add finally release
+
+      await queryRunner.commitTransaction();
+      return { message: commonMessage.update, data: null };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(error);
+    } finally {
+      await queryRunner.release();
+    }
   }
 
 
 
+export class UpdateIsSoldCheckDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  id: number;
+
+  @ApiProperty({ enum: listingEnums })
+  listingName: listingEnums;
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Patch API, Ssve by array and map
 
