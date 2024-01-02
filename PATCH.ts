@@ -27,7 +27,9 @@
     } catch (err) {
       await runner.rollbackTransaction();
       throw new InternalServerErrorException(err);
-    } //add finally release
+    }finally {
+      await runner.release();
+    }
   }
 
 //////////////////////////////////////////////////////////////////////////////////////
