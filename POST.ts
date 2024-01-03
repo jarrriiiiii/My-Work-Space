@@ -115,6 +115,7 @@ export class AssignEloungeDto {
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //Saving arrays to the DB via loops and insert query
 //Saving ProjectIds in the array and saving that array to the Database
+//MIGHT HAVE SOME ERRORS
   
       
   @noModulePermission()
