@@ -33,6 +33,86 @@
     }
   }
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ //Saving arrays to the DB via loops and insert query
+//Saving ProjectIds in the array and saving that array to the Database
+
+
+  @noModulePermission()
+  @UseInterceptors(TransformInterceptor)
+  @Post('assign/Elounge')
+  assignElounge(@Body() assignEloungeDto: AssignEloungeDto) {
+    return this.eloungeService.assignElounge(assignEloungeDto);
+  }
+
+
+
+
+
+  async assignElounge(
+    assignEloungeDto: AssignEloungeDto,
+  ): Promise<ResponseDto> {
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const assignUserEloungeRepo = await queryRunner.manager.getRepository(
+        AssignUserElounge,
+      );
+
+      const alreadyAssignedCheck = await assignUserEloungeRepo
+        .createQueryBuilder('assignUserElounge')
+        .where('assignUserElounge.eLoungId = :eLoungId ', {
+          eLoungId: assignEloungeDto.eLoungeId,
+        })
+        .andWhere('assignUserElounge.eLoungUserId IN(:...eLoungUserIds)', {
+          eLoungUserIds: assignEloungeDto.eLoungUserId,
+        }).getRawOne;
+
+      if (alreadyAssignedCheck)
+        throw new BadRequestException(
+          'These users are already assigned to this eLounge',
+        );
+
+      const myArr = [];
+
+      for (let i = 0; i < assignEloungeDto.eLoungUserId.length; i++) {
+        myArr.push({
+          eLoungeId: assignEloungeDto.eLoungeId,
+          eLoungUserId: assignEloungeDto.eLoungUserId[i],
+        });
+      }
+
+      const assignLoungeRes = await assignUserEloungeRepo
+        .createQueryBuilder()
+        .insert()
+        .values(myArr)
+        .execute();
+
+      await queryRunner.commitTransaction();
+      return { message: commonMessage.create, data: null };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(error);
+    } finally {
+      await queryRunner.release();
+    }
+  } 
+
+
+
+
+
+export class AssignEloungeDto {
+  @ApiProperty({ type: [Number] })
+  @IsNotEmpty()
+  eLoungUserId: number[];
+
+  @ApiProperty()
+  @IsNotEmpty()
+  eLoungeId: number;
+}
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //Saving arrays to the DB via loops and insert query
 //Saving ProjectIds in the array and saving that array to the Database
   
