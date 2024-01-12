@@ -111,3 +111,18 @@ async getAllPWProduct(id : number) : Promise<ResponseDto>{
     throw new InternalServerErrorException(error);
   }
 }
+
+
+
+
+/////////////////To getitems from query builder in array
+
+      const assignUserEloungeRepo = getRepository(AssignUserElounge);
+      const eloungeResult = await assignUserEloungeRepo.createQueryBuilder('assignUserElounge')
+        .where('assignUserElounge.eLoungUserId = :eLoungUserId', {eLoungUserId: eLoungUserId})
+        .leftJoinAndSelect('assignUserElounge.eloungeUser', 'eloungeUser')
+        .leftJoinAndSelect('eloungeUser.eLoungeSaleUser', 'eLoungeSaleUser')
+        .getMany();
+
+
+      const eLoungeResultRef = eloungeResult.map((item) => item.eloungeUser.eLoungeSaleUser.refCode)
