@@ -126,3 +126,36 @@ async getAllPWProduct(id : number) : Promise<ResponseDto>{
 
 
       const eLoungeResultRef = eloungeResult.map((item) => item.eloungeUser.eLoungeSaleUser.refCode)
+
+//OR 
+
+
+      const assignUserEloungeRepo = getRepository(AssignSaleUserELoungeLead);
+
+      const assignUserEloungeResult = await assignUserEloungeRepo
+        .createQueryBuilder('assignSaleUserELoungeLead')
+        .where(
+          'assignSaleUserELoungeLead.eLoungeSaleUserLeadId = :eLoungeSaleUserLeadId',
+          { eLoungeSaleUserLeadId: eLoungeUserResult.id },
+        )
+        .leftJoinAndSelect(
+          'assignSaleUserELoungeLead.eloungeUser',
+          'eloungeUser',
+        )
+        .leftJoinAndSelect('eloungeUser.eLoungeSaleUser', 'eLoungeSaleUser')
+        .getMany();
+
+      if (!assignUserEloungeResult) {
+        throw new BadRequestException('Assign Sale User Not Found!');
+      }
+
+
+      let arr = [];
+      for (let index = 0; index < assignUserEloungeResult.length; index++) {
+        const element =
+          assignUserEloungeResult[index].eloungeUser.eLoungeSaleUser?.refCode;
+        if (element) {
+          arr.push(element);
+        }
+      }
+
