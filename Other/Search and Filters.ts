@@ -1,46 +1,34 @@
 --------------------------------------------DTO FILE----------------------------------
-export class SearchGetUserManagementListDto {
-    @ApiProperty({required : false})
-    @IsOptional()
-    fullName : string
+export class FilterDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  fullName: string;
 
-    @ApiProperty({required : false})
-    @IsOptional()
-    email : string
+  @ApiProperty({ required: true })
+  @IsNotEmpty()
+  @IsString()
+  inventoryTitle: string;
 
-    @ApiProperty({required : false})
-    @IsOptional()
-    roleTitle : string
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsEmail()
+  email: string;
 
-    @ApiProperty({required : false})
-    @IsOptional()
-    phone : string
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsPhoneNumber()
+  phone: string;
 
-    //For Adding SORT BY Button
-    //Also add the ENUM for this
-    @ApiProperty({ type: 'string', enum: SortByOrder, required: false })
-    @IsOptional()
-    sortByOrder: SortByOrder;
-
-  
-    
+  //For Adding SORT BY Button
+  //Also add the ENUM for this
+  @ApiProperty({ type: 'string', enum: SortByOrder, required: false })
+  @IsOptional()
+  sortByOrder: SortByOrder;
 
   @ApiProperty({ required: false })
   @IsOptional()
   projecSubtype: ReqStatus;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  projectTypeId: number;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  projectSubTypeId: number;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  inventoryTitle: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -100,12 +88,8 @@ export class SearchGetUserManagementListDto {
   @ApiProperty({ type: 'string', enum: InventoryStatus, required: false })
   @IsOptional()
   inVentoryType: InventoryStatus;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  city: string;
 }
+
 
 
 ////Enums for additional use
@@ -145,19 +129,13 @@ export enum ReqStatus {
 
 
 
-/////////////////////////ELASTIC SEARCH
+//Elastic Search
 if (searchAppUserDto.fullName) {
     Result.andWhere('LOWER(profile.fullName) like LOWER(:fullName)', {
       fullName: `%${searchAppUserDto.fullName}%`,
     });
   }
 
-if (searchAppUserDto.email) {
-    Result.andWhere('LOWER(AdminUserAuth.email) like LOWER(:email)', {
-      email: `%${searchAppUserDto.email}%`,
-    });
-  }
-  
 
 if (searchAppUserDto.phone) {
     const phone = searchAppUserDto.phone.replace(/[^0-9\.]+/g, '');
@@ -166,12 +144,9 @@ if (searchAppUserDto.phone) {
     });
   }
 
-  if (searchAppUserDto.inventoryTitle) {
-    Result.andWhere('LOWER(inventory.title) like LOWER(:inventoryTitle)', {inventoryTitle: `%${searchAppUserDto.inventoryTitle}%`});
-  }
 
 
-//Multi field search in ONE search
+//Double Search Query
 if (customerListingFiltersDto.location) {
         customerListingResult.where(
           'customerListing.refCode ILIKE :FrefCode AND (profile.fullName ILIKE :search OR (PwSubPackage.title ILIKE :search OR (pwPackage.title ILIKE :search )))',
@@ -182,7 +157,10 @@ if (customerListingFiltersDto.location) {
         );
       } 
 
-//////////////////////////NON ELASTIC SEARCH/FILTERS
+
+
+        
+//Non-Elastic Search
 
   if (searchAppUserDto.isVerified == 'true') {
     Result.andWhere('user.isVerified = :check', { check:searchAppUserDto.isVerified })
@@ -196,60 +174,51 @@ if (getProjectTypeAndSubTypeDto.projectTypeId) {
     Result.andWhere('inventory.projectTypeId = :projectTypeId', { projectTypeId: getProjectTypeAndSubTypeDto.projectTypeId });
 }
         
-if (getProjectTypeAndSubTypeDto.projectSubTypeId) {
-      Result.andWhere('inventory.projectSubTypeId = :projectSubTypeId', { projectSubTypeId: getProjectTypeAndSubTypeDto.projectSubTypeId });
-}
-    
 if (getProjectTypeAndSubTypeDto.bedRooms ) {
       Result.andWhere('inventory.bedRooms = :bedRooms', { bedRooms :getProjectTypeAndSubTypeDto.bedRooms })
     }
     
-if (getProjectTypeAndSubTypeDto.washRooms) {
-      Result.andWhere('inventory.washRooms = :washRooms', { washRooms :getProjectTypeAndSubTypeDto.washRooms })
-    }
 
-/////////////////////////RANGE BASED QUICK FILTERS 
-
-    if (searchAppUserDto.minCommission && searchAppUserDto.maxCommission) {
-    Result.andWhere('HotListing.saleCommission BETWEEN :minCommission AND :maxCommission', { minCommission: searchAppUserDto.minCommission, maxCommission: searchAppUserDto.maxCommission })
+//Range Based Quick Filters
+        
+if (searchAppUserDto.minCommission && searchAppUserDto.maxCommission) {
+    Result.andWhere('HotListing.saleCommission BETWEEN :minCommission AND :maxCommission', {
+        minCommission: searchAppUserDto.minCommission,
+        maxCommission: searchAppUserDto.maxCommission
+    })
 }
-
-  if (searchAppUserDto.minCommission && searchAppUserDto.maxCommission) {
-    Result.andWhere('HotListing.updatedAt BETWEEN :postedStartDate AND :postedEndDate',{ postedStartDate: moment(searchAppUserDto.postedStartDate) , postedEndDate: moment(searchAppUserDto.postedEndDate) })
-}
-
-  if (searchAppUserDto.startDate && searchAppUserDto.endDate) {
-    Result.andWhere('user.createdAt BETWEEN :start AND :end', { start: searchAppUserDto.startDate, end: searchAppUserDto.endDate })
-
-}
-    
-
-    if (getProjectTypeAndSubTypeDto.minlandSize && getProjectTypeAndSubTypeDto.maxlandSize  && getProjectTypeAndSubTypeDto.landAreaId) {
-      Result.andWhere('inventory.landAreaId = :landAreaId', { landAreaId: getProjectTypeAndSubTypeDto.landAreaId })
-      Result.andWhere('inventory.landSize BETWEEN :minlandSize AND :maxlandSize', { minlandSize: getProjectTypeAndSubTypeDto.minlandSize, maxlandSize: getProjectTypeAndSubTypeDto.maxlandSize })
-    }
-
-
 
         
-    if (getProjectTypeAndSubTypeDto.minimumPrice && getProjectTypeAndSubTypeDto.maximumPrice ) {
-      Result.andWhere('inventory.price BETWEEN :minPrice AND :maxPrice', { minPrice: getProjectTypeAndSubTypeDto.minimumPrice, maxPrice: getProjectTypeAndSubTypeDto.maximumPrice })
-    }
+if (getProjectTypeAndSubTypeDto.postedStartDate && getProjectTypeAndSubTypeDto.postedEndDate) {
+    Result.andWhere('HotListing.updatedAt BETWEEN :postedStartDate AND :postedEndDate', {
+        postedStartDate: moment(getProjectTypeAndSubTypeDto.postedStartDate, ),
+        postedEndDate: moment(getProjectTypeAndSubTypeDto.postedEndDate),
+    }, );
+}
 
-      
-
-///////////////For Sort By: (ASC, DESC) Button 
-        //DTO Entry is saved above in the DTO section
         
-if (searchAssignLoProjectForAppDto.sortByOrder && searchAssignLoProjectForAppDto.sortByOrder === SortByOrder.Ascending) {
+        //For Magnitude with Unit
+if (getProjectTypeAndSubTypeDto.minlandSize && getProjectTypeAndSubTypeDto.maxlandSize && getProjectTypeAndSubTypeDto.landAreaId) {
+    Result.andWhere('inventory.landAreaId = :landAreaId', {
+        landAreaId: getProjectTypeAndSubTypeDto.landAreaId
+    })
+    Result.andWhere('inventory.landSize BETWEEN :minlandSize AND :maxlandSize', {
+        minlandSize: getProjectTypeAndSubTypeDto.minlandSize,
+        maxlandSize: getProjectTypeAndSubTypeDto.maxlandSize
+    })
+}
+
+        
+//For Sort By: (ASC, DESC) Button 
+//DTO Entry is saved above in the DTO section
+        if (searchAssignLoProjectForAppDto.sortByOrder && searchAssignLoProjectForAppDto.sortByOrder === SortByOrder.Ascending) {
         loProjectResult.orderBy('assignInventoryForLounge.id', 'ASC');
       } else {
         loProjectResult.orderBy('assignInventoryForLounge.id', 'DESC');
       }
         
-/////////////////For Sort By: Last Month only
-
-      if (getAllReviewForAgencyFilterDto.sortByOrder && getAllReviewForAgencyFilterDto.sortByOrder === SortByOrder.SortByLastMonth) {
+//For Sort By: Last Month only
+     if (getAllReviewForAgencyFilterDto.sortByOrder && getAllReviewForAgencyFilterDto.sortByOrder === SortByOrder.SortByLastMonth) {
        
         const lastMonthStartDate = new Date();
         lastMonthStartDate.setMonth(lastMonthStartDate.getMonth() - 1);
