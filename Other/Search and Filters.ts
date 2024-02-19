@@ -142,6 +142,10 @@ if (customerListingFiltersDto.location) {
         
 //Non-Elastic Search
 
+if (getProjectTypeAndSubTypeDto.postedDate) {
+    Result.andWhere('HotListing.updatedAt = :postedDate', {postedDate: moment(getProjectTypeAndSubTypeDto.postedDate)});
+}
+      
   if (searchAppUserDto.isVerified == 'true') {
     Result.andWhere('user.isVerified = :check', { check:searchAppUserDto.isVerified })
 }
