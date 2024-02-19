@@ -38,26 +38,6 @@ export class FilterDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  maximumPrice: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  minCommission: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  maxCommission: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  minlandSize: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
   maxlandSize: string;
 
   @ApiProperty({ required: false })
