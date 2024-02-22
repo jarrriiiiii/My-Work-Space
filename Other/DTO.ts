@@ -112,6 +112,17 @@ export class CreateNotificationDto {
   createHotListingSubDto: CreateHotListingSubDto[];
 
 
+  //Storing NON ARRAY SUB DTO
+
+  @ApiProperty({ type: CompanyUserProfileDto })
+  companyUserProfileDto: CompanyUserProfileDto;
+
+  @ApiProperty({ type: CompanyUserDto })
+  companyUserDto: CompanyUserDto;
+}
+
+
+
 }
 
 export class CreateHotListingSubDto {
