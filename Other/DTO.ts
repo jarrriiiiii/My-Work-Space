@@ -1,9 +1,10 @@
+
 export enum Type {
-  SaleQuotation = "SaleQuotation",
-  SaleOrder = "SaleOrder",
-  PaymentPlan = "PaymentPlan",
-  Brochure = "Brochure",
-  PostCreator = "PostCreator",
+  SaleQuotation = 'SaleQuotation',
+  SaleOrder = 'SaleOrder',
+  PaymentPlan = 'PaymentPlan',
+  Brochure = 'Brochure',
+  PostCreator = 'PostCreator',
 }
 
 export class CreateNotificationDto {
@@ -39,11 +40,20 @@ export class CreateNotificationDto {
   @IsOptional()
   imageUrl: string;
 
-  @ApiProperty({ type: "string", format: "binary", required: true })
+  @ApiProperty({ type: 'string', format: 'binary', required: true })
   freeTool: Express.Multer.File;
 
-  
-  //Enum METHOD 1
+  //Enum METHOD I
+  @ApiProperty({ enum: ListingType })
+  @IsNotEmpty()
+  listingType: ListingType;
+
+  //Enum Method II - To show enum dropdown in the swagger
+  @ApiProperty({ type: 'string', enum: InventoryStatus, required: false })
+  @IsOptional()
+  inVentoryType: InventoryStatus;
+
+  //DISCOURAGED HIGHLY!  //Enum METHOD III
   @IsString()
   @IsNotEmpty()
   @ApiProperty()
@@ -56,20 +66,6 @@ export class CreateNotificationDto {
   ])
   status: string;
 
-
-  //Enum METHOD II
-  @ApiProperty({ enum: ListingType })
-  @IsNotEmpty()
-  listingType: ListingType;
-
-
-  //Enum Method III - To show enum dropdown in the swagger
-  @ApiProperty({ type: "string", enum: InventoryStatus, required: false })
-  @IsOptional()
-  inVentoryType: InventoryStatus;
-
-
-  
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
@@ -111,7 +107,6 @@ export class CreateNotificationDto {
   @ApiProperty({ type: [CreateHotListingSubDto] })
   createHotListingSubDto: CreateHotListingSubDto[];
 
-
   //Storing NON ARRAY SUB DTO
 
   @ApiProperty({ type: CompanyUserProfileDto })
@@ -119,10 +114,6 @@ export class CreateNotificationDto {
 
   @ApiProperty({ type: CompanyUserDto })
   companyUserDto: CompanyUserDto;
-}
-
-
-
 }
 
 export class CreateHotListingSubDto {
