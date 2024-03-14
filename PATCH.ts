@@ -195,3 +195,180 @@ async editDigitalCatalogue(catalogueId: number, updateCatalogueDto: UpdateCatalo
   }
 }
 
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Update Array Based Data
+
+
+//DTO
+export class WorkSheetFixedDetailDto {
+  @ApiProperty({ required: true })
+  @IsNotEmpty()
+  dayNames: string;
+
+  @ApiProperty({ required: true })
+  @IsNotEmpty()
+  workStartTimes: Date;
+
+  @ApiProperty({ required: true })
+  @IsNotEmpty()
+  workEndTimes: Date;
+}
+
+export class WorkSheetFlexibleDetailDto {
+  @ApiProperty({ required: true })
+  @IsNotEmpty()
+  dayNames: string;
+
+  @ApiProperty({ required: true })
+  @IsNotEmpty()
+  hours: number;
+
+  @ApiProperty({ required: true })
+  @IsNotEmpty()
+  minutes: number;
+}
+
+export class CreateCompanyWorksheetDto {
+  @ApiProperty()
+  @IsString()
+  title: string;
+
+  @ApiProperty({ type: 'string', enum: WorkSheetTypeEnum, required: false })
+  @IsNotEmpty()
+  workSheetType: WorkSheetTypeEnum;
+
+  @ApiProperty({
+    type: [WorkSheetFixedDetailDto],
+  })
+  workSheetFixedDetailDto: WorkSheetFixedDetailDto[];
+
+  @ApiProperty({
+    type: [WorkSheetFlexibleDetailDto],
+  })
+  workSheetFlexibleDetailDto: WorkSheetFlexibleDetailDto[];
+}
+
+
+//Controller
+
+  @CompanyModulePermission(CompanyModuleEnum.workSchedule)
+  @UseInterceptors(TransformInterceptor)
+  @ApiOperation({
+    description: CompanyDescription.updateCompanyWorksheet,
+    summary: apiForSummary.companyUser,
+  })
+  @Patch('/:id')
+  updateCompanyWorksheet(
+    @Param('id') id: number,
+    @Body() createCompanyWorksheetDto: CreateCompanyWorksheetDto,
+  ) {
+    return this.companyWorkSheetService.updateCompanyWorksheet(
+      id,
+      createCompanyWorksheetDto,
+    );
+  }
+
+
+
+//Services
+  async updateCompanyWorksheet(
+    id: number,
+    createCompanyWorksheetDto: CreateCompanyWorksheetDto,
+  ): Promise<ResponseDto> {
+    const runner = this.connection.createQueryRunner();
+    await runner.connect();
+    await runner.startTransaction();
+    try {
+      const companyWorkSheetRepo =
+        runner.manager.getRepository(CompanyWorkSheet);
+      const workSheetFixedDetailRepo =
+        runner.manager.getRepository(WorkSheetFixedDetail);
+      const workSheetFlexibleDetailRepo = runner.manager.getRepository(
+        WorkSheetFlexibleDetail,
+      );
+      const findCheck = await companyWorkSheetRepo.findOne({ id: id });
+
+      if (findCheck.id) {
+        await companyWorkSheetRepo.update(
+          { id: id },
+          { title: createCompanyWorksheetDto.title },
+        );
+
+        if (
+          createCompanyWorksheetDto.workSheetType === WorkSheetTypeEnum.Fixed
+        ) {
+          await workSheetFixedDetailRepo.delete({
+            companyWorkSheetId: findCheck.id,
+          });
+
+          const workSheetFixedDetailArray = [];
+          for (
+            let i = 0;
+            i < createCompanyWorksheetDto.workSheetFixedDetailDto.length;
+            i++
+          ) {
+            workSheetFixedDetailArray.push({
+              companyWorkSheetId: findCheck.id,
+              dayName:
+                createCompanyWorksheetDto.workSheetFixedDetailDto[i].dayNames,
+              workStartTime:
+                createCompanyWorksheetDto.workSheetFixedDetailDto[i]
+                  .workStartTimes,
+              workEndTime:
+                createCompanyWorksheetDto.workSheetFixedDetailDto[i]
+                  .workEndTimes,
+            });
+          }
+
+          const workSheetFixedDetailData = await workSheetFixedDetailRepo
+            .createQueryBuilder()
+            .insert()
+            .values(workSheetFixedDetailArray)
+            .execute();
+        } else {
+          await workSheetFlexibleDetailRepo.delete({
+            companyWorkSheetId: findCheck.id,
+          });
+
+          const workSheetFlexibleDetailArray = [];
+
+          for (
+            let i = 0;
+            i < createCompanyWorksheetDto.workSheetFlexibleDetailDto.length;
+            i++
+          ) {
+            workSheetFlexibleDetailArray.push({
+              companyWorkSheetId: findCheck.id,
+              dayName:
+                createCompanyWorksheetDto.workSheetFlexibleDetailDto[i]
+                  .dayNames,
+              hour: createCompanyWorksheetDto.workSheetFlexibleDetailDto[i]
+                .hours,
+              minute:
+                createCompanyWorksheetDto.workSheetFlexibleDetailDto[i].minutes,
+            });
+          }
+
+          const workSheetFlexibleDetailDetail =
+            await workSheetFlexibleDetailRepo
+              .createQueryBuilder()
+              .insert()
+              .values(workSheetFlexibleDetailArray)
+              .execute();
+        }
+      } else {
+        throw new BadRequestException(commonMessage.idNotFound);
+      }
+      await runner.commitTransaction();
+      return { message: commonMessage.SuccessFullyUpdated };
+    } catch (err) {
+      await runner.rollbackTransaction();
+      throw new InternalServerErrorException(err);
+    } finally {
+      await runner.release();
+    }
+  }
+
+
