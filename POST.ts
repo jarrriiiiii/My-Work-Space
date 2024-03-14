@@ -289,5 +289,160 @@ export class CreateCatalogueDto {
 }
 
 
+----------------------------------------------------------------------------------------------------------------
+//Saving arrays to the DB via loops and insert query using MAP
+
+  //Dto
+
+  export class WorkSheetFixedDetailDto {
+  @ApiProperty({ required: true })
+  @IsNotEmpty()
+  dayNames: string;
+
+  @ApiProperty({ required: true })
+  @IsNotEmpty()
+  workStartTimes: Date;
+
+  @ApiProperty({ required: true })
+  @IsNotEmpty()
+  workEndTimes: Date;
+}
+
+export class WorkSheetFlexibleDetailDto {
+  @ApiProperty({ required: true })
+  @IsNotEmpty()
+  dayNames: string;
+
+  @ApiProperty({ required: true })
+  @IsNotEmpty()
+  hours: number;
+
+  @ApiProperty({ required: true })
+  @IsNotEmpty()
+  minutes: number;
+}
+
+export class CreateCompanyWorksheetDto {
+  @ApiProperty()
+  @IsString()
+  title: string;
+
+  @ApiProperty({ type: 'string', enum: WorkSheetTypeEnum, required: false })
+  @IsNotEmpty()
+  workSheetType: WorkSheetTypeEnum;
+
+  @ApiProperty({
+    type: [WorkSheetFixedDetailDto],
+  })
+  workSheetFixedDetailDto: WorkSheetFixedDetailDto[];
+
+  @ApiProperty({
+    type: [WorkSheetFlexibleDetailDto],
+  })
+  workSheetFlexibleDetailDto: WorkSheetFlexibleDetailDto[];
+}
 
 
+//Controller
+
+
+  @CompanyModulePermission(CompanyModuleEnum.workSchedule)
+  @UseInterceptors(TransformInterceptor)
+  @ApiOperation({
+    description: CompanyDescription.createCompanyWorksheet,
+    summary: apiForSummary.companyUser,
+  })
+  @Post('/')
+  createCompanyWorksheet(
+    @Body() createCompanyWorksheetDto: CreateCompanyWorksheetDto,
+  ) {
+    return this.companyWorkSheetService.createCompanyWorksheet(
+      createCompanyWorksheetDto,
+    );
+  }
+
+
+
+//services
+
+  async createCompanyWorksheet(
+    createCompanyWorksheetDto: CreateCompanyWorksheetDto,
+  ): Promise<ResponseDto> {
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const workSheetFixedDetailRepo =
+        queryRunner.manager.getRepository(WorkSheetFixedDetail);
+      const workSheetFlexibleDetailRepo = queryRunner.manager.getRepository(
+        WorkSheetFlexibleDetail,
+      );
+      const companyWorkSheetRepo =
+        queryRunner.manager.getRepository(CompanyWorkSheet);
+      const companyId = await this.companyAuthService.getCompanyId();
+
+      const companyWorkSheetNewData = await companyWorkSheetRepo.save({
+        companyId: companyId,
+        title: createCompanyWorksheetDto.title,
+      });
+
+      if (createCompanyWorksheetDto.workSheetType === WorkSheetTypeEnum.Fixed) {
+        const workSheetFixedDetailArray = [];
+        for (
+          let i = 0;
+          i < createCompanyWorksheetDto.workSheetFixedDetailDto.length;
+          i++
+        ) {
+          workSheetFixedDetailArray.push({
+            companyWorkSheetId: companyWorkSheetNewData.id,
+            dayName:
+              createCompanyWorksheetDto.workSheetFixedDetailDto[i].dayNames,
+            workStartTime:
+              createCompanyWorksheetDto.workSheetFixedDetailDto[i]
+                .workStartTimes,
+            workEndTime:
+              createCompanyWorksheetDto.workSheetFixedDetailDto[i].workEndTimes,
+          });
+        }
+
+        await workSheetFixedDetailRepo
+          .createQueryBuilder()
+          .insert()
+          .values(workSheetFixedDetailArray)
+          .execute();
+      } else {
+        const workSheetFlexibleDetailArray = [];
+        for (
+          let i = 0;
+          i < createCompanyWorksheetDto.workSheetFlexibleDetailDto.length;
+          i++
+        ) {
+          workSheetFlexibleDetailArray.push({
+            companyWorkSheetId: companyWorkSheetNewData.id,
+            dayName:
+              createCompanyWorksheetDto.workSheetFlexibleDetailDto[i].dayNames,
+            hour: createCompanyWorksheetDto.workSheetFlexibleDetailDto[i].hours,
+            minute:
+              createCompanyWorksheetDto.workSheetFlexibleDetailDto[i].minutes,
+          });
+        }
+
+        await workSheetFlexibleDetailRepo
+          .createQueryBuilder()
+          .insert()
+          .values(workSheetFlexibleDetailArray)
+          .execute();
+      }
+
+      await queryRunner.commitTransaction();
+      return { message: commonMessage.create, data: {} };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  
