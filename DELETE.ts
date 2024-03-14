@@ -1,3 +1,46 @@
+  @CompanyModulePermission(CompanyModuleEnum.workSchedule)
+  @UseInterceptors(TransformInterceptor)
+  @ApiOperation({
+    description: CompanyDescription.deleteCompanyWorksheet,
+    summary: apiForSummary.companyUser,
+  })
+  @Delete('/:id')
+  deleteCompanyWorksheet(@Param('id') id: number) {
+    return this.companyWorkSheetService.deleteCompanyWorksheet(+id);
+  }
+
+
+
+  async deleteCompanyWorksheet(id: number): Promise<any> {
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const companyWorkSheetRepo = getRepository(CompanyWorkSheet);
+      const companyId = await this.companyAuthService.getCompanyId();
+      const findCheck = await companyWorkSheetRepo.findOne({
+        where: { id: id, companyId: companyId },
+      });
+      if (findCheck.id) {
+        await companyWorkSheetRepo.softDelete({ id: id });
+      } else {
+        throw new BadRequestException(commonMessage.idNotFound);
+      }
+      await queryRunner.commitTransaction();
+      return { message: commonMessage.delete, data: null };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
 //Soft Delete
 
 @noModulePermission
@@ -57,5 +100,7 @@ return this.serviceXXXXX.DeletePWInventoryPlot(+id);
     finally {
       await queryRunner.release()
     }}}
-     
+
+
+
 
