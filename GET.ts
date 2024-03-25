@@ -159,3 +159,64 @@ async getAllPWProduct(id : number) : Promise<ResponseDto>{
         }
       }
 
+
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//Object Manipulation in Arrays
+  @forAllUser()
+  @Get('getAllLeadsFollowUp')
+  getAllLeadsFollowUp(
+    @Query('page', ParseIntPipe) page: number,
+    @Query('limit', ParseIntPipe) limit: number,
+  ) {
+    return this.leadService.getAllLeadsFollowUp({ page, limit });
+  }
+
+
+
+
+
+
+
+  async getAllLeadsFollowUp(options: IPaginationOptions): Promise<ResponseDto> {
+    try {
+      const userId = await this.authService.getUserId();
+      const leadFollowUpRepo = getRepository(LeadFollowUp);
+      const Result = await leadFollowUpRepo
+        .createQueryBuilder('leadFollowUp')
+        .where('leadFollowUp.userId = :userId', { userId: userId })
+        .andWhere('leadFollowUp.noOfDays > :noOfDays', { noOfDays: 0 })
+        .leftJoinAndSelect('leadFollowUp.lead', 'lead')
+        .leftJoinAndSelect('lead.createdByUser', 'createdByUser')
+        .leftJoinAndSelect('lead.client', 'client')
+        .orderBy('leadFollowUp.id', 'DESC');
+
+      const Data = await paginate<LeadFollowUp>(Result, options);
+      let arr = [];
+
+      for (let i = 0; i < Data.items.length; i++) {
+        const leadFollowUp = Data.items[i];
+        const dueDate = leadFollowUp.dueDate;
+        const today = new Date();
+        const remainingDays = Math.ceil(
+          (dueDate.getTime() - today.getTime()) / (1000 * 3600 * 24),
+        );
+
+        arr.push({ ...leadFollowUp, remainingDays });
+      }
+
+      return {
+        message: commonMessage.get,
+        data: { items: arr, meta: Data.meta },
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
