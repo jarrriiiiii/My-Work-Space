@@ -220,3 +220,71 @@ async getAllPWProduct(id : number) : Promise<ResponseDto>{
       throw new InternalServerErrorException(error);
     }
   }
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+//Get By DATE ONLY - Show All Records of that full day
+  
+  @NoCompanyModulePermission()
+  @Get('getPayrollByEmployeeId')
+  @UseInterceptors(TransformInterceptor)
+  getPayrollByEmployeeId(@Query() getUserPayrollByIdDto: GetUserPayrollByIdDto) {
+    return this.userPayrollService.getPayrollByEmployeeId(getUserPayrollByIdDto);
+  }
+
+
+
+export class GetUserPayrollByIdDto {
+  @ApiProperty()
+  employeeId: number;
+
+  @ApiProperty()
+  departmentId: number;
+
+  @ApiProperty()
+  payRolldate: Date;
+}
+
+
+
+
+  async getPayrollByEmployeeId(
+    getUserPayrollByIdDto: GetUserPayrollByIdDto,
+  ): Promise<ResponseDto> {
+    try {
+      const userPayrollRepo = getRepository(UserPayroll);
+      const userPayrollResult = userPayrollRepo
+        .createQueryBuilder('userPayroll')
+        .innerJoin('userPayroll.companyUser', 'companyUser')
+        .addSelect([
+          'companyUser.id',
+          'companyUser.salary',
+          'companyUser.taxableAmount',
+          'companyUser.designation',
+          'companyUser.email',
+          'companyUser.phoneNo',
+          'companyUser.isActive',
+          'companyUser.dateOfBirth',
+          'companyUser.joiningDate',
+          'companyUser.salary',
+          'companyUser.companyDepartmentId',
+        ])
+        .where('userPayroll.companyUserId = :companyUserId', {
+          companyUserId: getUserPayrollByIdDto.employeeId,
+        })
+        .andWhere('companyUser.companyDepartmentId = :companyDepartmentId', {
+          companyDepartmentId: getUserPayrollByIdDto.departmentId,
+        })
+        .where('DATE(userPayroll.createdAt) = :payRollDate', {
+          payRollDate: getUserPayrollByIdDto.payRolldate,
+        });
+
+      console.log(getUserPayrollByIdDto);
+      const totalItems = await userPayrollResult.getMany();
+
+      return { message: commonMessage.get, data: totalItems };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+
