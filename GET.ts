@@ -288,3 +288,122 @@ export class GetUserPayrollByIdDto {
   }
 
 
+------------
+  GET BY DATE, WEEK, MONTH
+
+
+  @CompanyModulePermission(CompanyModuleEnum.attendance)
+  @UseInterceptors(TransformInterceptor)
+  @Get('attendanceByDate')
+  attendanceByDate(
+    @Query('page', ParseIntPipe) page: number,
+    @Query('limit', ParseIntPipe) limit: number,
+    @Query() attendanceByDateDto: AttendanceByDateDto,
+  ) {
+    limit = limit > 100 ? 100 : limit;
+    return this.companyUserAttendanceService.attendanceByDate(
+      page,
+      limit,
+      attendanceByDateDto,
+    );
+  }
+
+
+
+
+
+
+export class AttendanceByDateDto {
+  @ApiProperty({ required: false })
+  inputDate: Date;
+
+  @ApiProperty({ required: false })
+  startDate: Date;
+
+  @ApiProperty({ required: false })
+  endDate: Date;
+
+  @ApiProperty({ type: 'string', enum: AttendanceByDate, required: true })
+  attendanceByDate: AttendanceByDate;
+}
+
+
+
+
+
+
+  async attendanceByDate(
+    page: number,
+    limit: number,
+    attendanceByDateDto: AttendanceByDateDto,
+  ): Promise<ResponseDto> {
+    try {
+      const companyUserId = await this.companyAuthService.getCompanyUserId();
+      const companyAttendanceLogsRepo = getRepository(CompanyAttendanceLogs);
+      const CompanyAttendanceLogsResult = await companyAttendanceLogsRepo
+        .createQueryBuilder('companyAttendanceLogs')
+        .leftJoinAndSelect(
+          'companyAttendanceLogs.companyUserAttendance',
+          'companyUserAttendance',
+        )
+        .where('companyUserAttendance.companyUserId = :companyUserId', {
+          companyUserId,
+        });
+
+      if (attendanceByDateDto.attendanceByDate === AttendanceByDate.Daily) {
+        CompanyAttendanceLogsResult.andWhere(
+          'DATE(companyUserAttendance.createdAt) = :inputDate',
+          { inputDate: attendanceByDateDto.inputDate },
+        );
+      } else if (
+        attendanceByDateDto.attendanceByDate === AttendanceByDate.Weekly
+      ) {
+        CompanyAttendanceLogsResult.andWhere(
+          'companyUserAttendance.createdAt BETWEEN :startDate AND :endDate',
+          {
+            startDate: moment(attendanceByDateDto.startDate),
+            endDate: moment(attendanceByDateDto.endDate),
+          },
+        );
+      } else if (
+        attendanceByDateDto.attendanceByDate === AttendanceByDate.Monthly
+      ) {
+        const startOfMonth = moment(attendanceByDateDto.inputDate)
+          .startOf('month')
+          .toDate();
+        const endOfMonth = moment(attendanceByDateDto.inputDate)
+          .endOf('month')
+          .toDate();
+
+        CompanyAttendanceLogsResult.andWhere(
+          'companyUserAttendance.createdAt BETWEEN :startOfMonth AND :endOfMonth',
+          { startOfMonth, endOfMonth },
+        );
+      }
+
+      const totalItems = await CompanyAttendanceLogsResult.getCount();
+
+      const pg = await paginate<CompanyAttendanceLogs>(
+        CompanyAttendanceLogsResult,
+        {
+          limit,
+          page,
+          paginationType: PaginationTypeEnum.TAKE_AND_SKIP,
+          metaTransformer: ({ currentPage, itemCount, itemsPerPage }) => {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            return {
+              currentPage,
+              itemCount,
+              itemsPerPage,
+              totalPages,
+            };
+          },
+        },
+      );
+      return { message: commonMessage.get, data: pg };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+
