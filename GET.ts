@@ -407,3 +407,112 @@ export class AttendanceByDateDto {
   }
 
 
+-------------------------------------------------------------------------------------------------------------------------------
+GET COUNTS OF DIFFERENT FIELDS IN THE TABLE USING FOR EACH LOOP (1 OF 2)
+
+  @Get('getLeadStats/:campaignId')
+  @UseInterceptors(TransformInterceptor)
+  getLeadStats(@Param('campaignId') campaignId: string) {
+    return this.finalLeadsService.getLeadStats(+campaignId);
+  }
+
+
+ async getLeadStats(campaignId: number): Promise<ResponseDto> {
+    try {
+      const leadRepo = getRepository(Lead);
+      const leadResult = leadRepo
+        .createQueryBuilder('lead')
+        .select([
+          'COUNT(lead.id) AS totalLeadCounts',
+          'COUNT(leadPermission.id) AS assignedLeadCount',
+          'COUNT(lead.status) AS leadStatusCount',
+          // 'lead.status AS leadStatus',
+        ])
+        .where('lead.campaignId = :campaignId', { campaignId })
+        .leftJoin('lead.leadPermission', 'leadPermission');
+      // .groupBy('lead.status');
+
+      const totalItems = await leadResult.getRawMany();
+
+      if (!totalItems.length) {
+        const blankArray = [];
+        return {
+          message: commonMessage.get,
+          data: {
+            totalLeadCounts: blankArray.length,
+            assignedLeadCount: blankArray.length,
+            leadStatusCount: blankArray.length,
+            // leadstatus: null,
+          },
+        };
+      }
+
+      return { message: commonMessage.get, data: totalItems };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+-------------------------------------------------------------------------------------------------------------------------------
+GET COUNTS OF DIFFERENT FIELDS IN THE TABLE USING FOR EACH LOOP (2 OF 2)
+
+  @Get('getLeadStatsForChart/:campaignId')
+  @UseInterceptors(TransformInterceptor)
+  getLeadStatsForChart(@Param('campaignId') campaignId: string) {
+    return this.finalLeadsService.getLeadStatsForChart(+campaignId);
+  }
+
+
+
+ async getLeadStatsForChart(campaignId: number): Promise<ResponseDto> {
+    const queryRunner = this.connection.createQueryRunner();
+
+    try {
+      const leadRepo = await getRepository(Lead);
+      const totalLeadByStatusCount = leadRepo
+        .createQueryBuilder('lead')
+        .where('lead.campaignId = :campaignId', { campaignId })
+        .getMany();
+
+      const interestedLeads = [];
+      const notInterestedLeads = [];
+      const untouchedLeads = [];
+      const appointmentAlignedLeads = [];
+      const topPriorityLeads = [];
+      const wrongNoLeads = [];
+
+      (await totalLeadByStatusCount).forEach((x) => {
+        if (x.status === LeadStatus.Interested) {
+          interestedLeads.push(x);
+        } else if (x.status === LeadStatus.NotInterested) {
+          notInterestedLeads.push(x);
+        } else if (x.status === LeadStatus.Untouched) {
+          untouchedLeads.push(x);
+        } else if (x.status === LeadStatus.AppointmentAligned) {
+          appointmentAlignedLeads.push(x);
+        } else if (x.status === LeadStatus.TopPriority) {
+          topPriorityLeads.push(x);
+        } else if (x.status === LeadStatus.WrongNo) {
+          wrongNoLeads.push(x);
+        }
+      });
+
+      return {
+        message: commonMessage.get,
+        data: {
+          totalLeadByStatusCount: (await totalLeadByStatusCount).length,
+          interestedLeads: interestedLeads.length,
+          notInterestedLeads: notInterestedLeads.length,
+          untouchedLeads: untouchedLeads.length,
+          appointmentAlignedLeads: appointmentAlignedLeads.length,
+          topPriorityLeads: topPriorityLeads.length,
+          wrongNoLeads: wrongNoLeads.length,
+        },
+      };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
