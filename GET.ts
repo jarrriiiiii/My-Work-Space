@@ -1,39 +1,3 @@
-//GET ALL (Non-Paginated)
-
-
-  @proCoo(proCooRoleType.attendant)
-  @Get('/getAllAttendant')
-  @UseInterceptors(TransformInterceptor)
-  getAllAttendant(
-  ) {
-    return this.proCooAuthService.getAllAttendant();
-  }
-
-
-   async getAllAttendant(): Promise<ResponseDto> {
-    try {
-      const ProjectCoordinatorUserRepo = getRepository(ProjectCoordinatorUser);
-      const ProjectCoordinatorUserResult = await ProjectCoordinatorUserRepo.createQueryBuilder('projectCoordinatorUser')
-      .where('projectCoordinatorRole.title = :title', {title: 'attendant'})
-      .select([
-            'projectCoordinatorUser.id',
-            'projectCoordinatorUser.projectCoordinatorRoleId',
-          ])
-      .leftJoin('projectCoordinatorUser.projectCoordinatorRole','projectCoordinatorRole')
-      .addSelect([
-            'projectCoordinatorRole.id',
-            'projectCoordinatorRole.title',
-          ])
-      .getMany()
-
-      return { message: commonMessage.get, data: ProjectCoordinatorUserResult };
-    } catch (error) {
-      throw new InternalServerErrorException(error);
-    }
-  }
-
-
-
 ----------------------------------------------------------------------------------------------------------------------------------------------------
 //GET ALL (Paginated)
   
@@ -87,9 +51,50 @@
       throw new InternalServerErrorException(error);
     }
   }
+
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+//GET ALL (Non-Paginated)
+
+
+  @proCoo(proCooRoleType.attendant)
+  @Get('/getAllAttendant')
+  @UseInterceptors(TransformInterceptor)
+  getAllAttendant(
+  ) {
+    return this.proCooAuthService.getAllAttendant();
+  }
+
+
+   async getAllAttendant(): Promise<ResponseDto> {
+    try {
+      const ProjectCoordinatorUserRepo = getRepository(ProjectCoordinatorUser);
+      const ProjectCoordinatorUserResult = await ProjectCoordinatorUserRepo.createQueryBuilder('projectCoordinatorUser')
+      .where('projectCoordinatorRole.title = :title', {title: 'attendant'})
+      .select([
+            'projectCoordinatorUser.id',
+            'projectCoordinatorUser.projectCoordinatorRoleId',
+          ])
+      .leftJoin('projectCoordinatorUser.projectCoordinatorRole','projectCoordinatorRole')
+      .addSelect([
+            'projectCoordinatorRole.id',
+            'projectCoordinatorRole.title',
+          ])
+      .getMany()
+
+      return { message: commonMessage.get, data: ProjectCoordinatorUserResult };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+
+
+
 ----------------------------------------------------------------------------------------------------------------------------------------------------
 //Get By Id
-
 
 @Get('getAllPWProduct/:id')
 @hasModulePermission(moduleType.inventories)
@@ -162,13 +167,7 @@ async getAllPWProduct(id : number) : Promise<ResponseDto>{
 
 
 
-
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////
+----------------------------------------------------------------------------------------------------------------------------------------------------
 //Object Manipulation in Arrays
   @forAllUser()
   @Get('getAllLeadsFollowUp')
@@ -178,10 +177,6 @@ async getAllPWProduct(id : number) : Promise<ResponseDto>{
   ) {
     return this.leadService.getAllLeadsFollowUp({ page, limit });
   }
-
-
-
-
 
 
 
@@ -221,7 +216,7 @@ async getAllPWProduct(id : number) : Promise<ResponseDto>{
     }
   }
 
-----------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
 //Get By DATE ONLY - Show All Records of that full day
   
   @NoCompanyModulePermission()
@@ -288,7 +283,7 @@ export class GetUserPayrollByIdDto {
   }
 
 
-------------
+----------------------------------------------------------------------------------------------------------------------------------------------------
   GET BY DATE, WEEK, MONTH
 
 
@@ -326,6 +321,7 @@ export class AttendanceByDateDto {
   @ApiProperty({ type: 'string', enum: AttendanceByDate, required: true })
   attendanceByDate: AttendanceByDate;
 }
+
 
 
 
