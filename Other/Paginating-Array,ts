@@ -1,0 +1,84 @@
+//Paginating Array With Custom Meta
+
+
+@forAllUser()
+  @Get('getAllLeadsFollowUp')
+  getAllLeadsFollowUp(
+    @Query('page', ParseIntPipe) page: number,
+    @Query('limit', ParseIntPipe) limit: number,
+    @Query() getAllLeadsFollowUpDto: GetAllLeadsFollowUpDto,
+  ) {
+    return this.leadService.getAllLeadsFollowUp(
+      page,
+      limit,
+      getAllLeadsFollowUpDto,
+    );
+  }
+
+
+
+  async getAllLeadsFollowUp(
+    page,
+    limit,
+    getAllLeadsFollowUpDto: GetAllLeadsFollowUpDto,
+  ): Promise<ResponseDto> {
+    try {
+      const userId = await this.authService.getUserId();
+      const leadFollowUpRepo = getRepository(LeadFollowUp);
+      const Result = await leadFollowUpRepo
+        .createQueryBuilder('leadFollowUp')
+        .where('leadFollowUp.userId = :userId', {
+          userId: getAllLeadsFollowUpDto.userId ?? userId,
+        })
+        .andWhere('leadFollowUp.noOfDays > :noOfDays', { noOfDays: 0 })
+        .leftJoinAndSelect('leadFollowUp.lead', 'lead')
+        .leftJoinAndSelect('lead.campaign', 'campaign')
+        .leftJoinAndSelect('lead.createdByUser', 'createdByUser')
+        .leftJoinAndSelect('lead.client', 'client')
+        .orderBy('leadFollowUp.noOfDays', 'ASC')
+        .getMany();
+
+      const arr = [];
+
+      for (let i = 0; i < Result.length; i++) {
+        const leadFollowUp = Result[i];
+        const dueDate = leadFollowUp.dueDate;
+        const today = new Date();
+        const remainingDays = Math.ceil(
+          (dueDate.getTime() - today.getTime()) / (1000 * 3600 * 24),
+        );
+
+        arr.push({ ...leadFollowUp, remainingDays });
+      }
+
+      const filteredItems = arr.filter(checkAdult);
+
+      function checkAdult(arr) {
+        return arr.remainingDays >= 0;
+      }
+
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedItems = filteredItems.slice(startIndex, endIndex);
+
+      const totalItems = filteredItems.length;
+      const totalPages = Math.ceil(totalItems / limit);
+      const currentPage = page;
+
+      return {
+        message: commonMessage.get,
+        data: {
+          items: paginatedItems,
+          meta: {
+            currentPage: page,
+            itemCount: paginatedItems.length,
+            itemsPerPage: limit,
+            totalPages: totalPages,
+            totalItems: totalItems,
+          },
+        },
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
