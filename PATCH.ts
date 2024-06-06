@@ -372,3 +372,57 @@ export class CreateCompanyWorksheetDto {
   }
 
 
+---------------------------------------------------------------------------------------------------
+//Update Array Based Input
+
+  @CompanyModulePermission(CompanyModuleEnum.userPayRoll)
+  @Patch('markAsPaid')
+  markAsPaid(@Body() markAsPaidDto: MarkAsPaidDto) {
+    return this.userPayrollService.markAsPaid(markAsPaidDto);
+  }
+
+
+
+export class MarkAsPaidDto {
+  @ApiProperty({ type: [Number], required: true })
+  @IsNotEmpty()
+  companyUserId: number[];
+}
+
+
+  async markAsPaid(markAsPaidDto: MarkAsPaidDto): Promise<ResponseDto> {
+    const runner = this.connection.createQueryRunner();
+    await runner.connect();
+    await runner.startTransaction();
+    try {
+      const userPayrollRepo = runner.manager.getRepository(UserPayroll);
+      let arr = [];
+      for (let i = 0; i < markAsPaidDto.companyUserId.length; i++) {
+        const findCheck = await userPayrollRepo.findOne({
+          where: { companyUserId: markAsPaidDto.companyUserId[i] },
+        });
+        if (findCheck) {
+          await userPayrollRepo.update(
+            { companyUserId: markAsPaidDto.companyUserId[i] },
+            { status: PayStatus.PAID },
+          );
+
+          const findId = await userPayrollRepo.findOne({
+            where: { companyUserId: markAsPaidDto.companyUserId[i] },
+          });
+          arr.push(findId);
+        } else {
+          throw new BadRequestException(commonMessage.idNotFound);
+        }
+      }
+
+      await runner.commitTransaction();
+      return { message: commonMessage.SuccessFullyUpdated, data: arr };
+    } catch (err) {
+      await runner.rollbackTransaction();
+      throw new InternalServerErrorException(err);
+    } finally {
+      await runner.release();
+    }
+  }
+
